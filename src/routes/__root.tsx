@@ -1,4 +1,4 @@
-import* as React from 'react'
+
 import { Outlet, createRootRoute } from '@tanstack/react-router'
 import Navbar from '../components/Navbar'
 import NotFound from '../components/NotFound'

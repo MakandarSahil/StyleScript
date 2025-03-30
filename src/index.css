@@ -118,3 +118,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+  font-family: "cutom-font";
+  src : url('../public/assets/fonts/SpaceMono-Regular.ttf')
+
+}
+
+* {
+  font-family: 'cutom-font';
+}
