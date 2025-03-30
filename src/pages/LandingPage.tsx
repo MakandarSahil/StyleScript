@@ -5,6 +5,7 @@ import { BackgroundLines } from "@/components/ui/background-lines"
 import { Button } from "@/components/ui/button"
 import { ThreeDMarquee } from "@/components/ui/ThreeDMarquee"
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect"
+import { Link } from "@tanstack/react-router"
 
 export default function LandingPage() {
   // Sample images array for the 3D marquee
@@ -85,7 +86,7 @@ export default function LandingPage() {
       </BackgroundLines> */}
 
 
-      <div className="w-full">
+      <div className="w-full  rounded-xl">
         <ThreeDMarquee images={images} />
       </div>
 
@@ -95,7 +96,8 @@ export default function LandingPage() {
         </p>
         <TypewriterEffectSmooth words={words} />
         <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 space-x-0 md:space-x-4">
-          <Button className="bg-transparent hover:bg-white hover:text-black border-2 border-white px-10 rounded-md">Create Your Design</Button>
+          <Link to='/chats'><Button className="bg-transparent hover:bg-white hover:text-black border-2 border-white px-10 rounded-md">Create Your Design</Button>
+          </Link>
           <Button className="bg-white text-black hover:bg-gray-200 px-10 rounded-md">Signup</Button>
         </div>
       </div>

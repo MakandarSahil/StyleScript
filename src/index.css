@@ -151,3 +151,14 @@ body::-webkit-scrollbar-thumb {
 body::-webkit-scrollbar-thumb:hover {
   background: #555; 
 }
+
+
+textarea {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer & Edge */
+}
+
+textarea::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+

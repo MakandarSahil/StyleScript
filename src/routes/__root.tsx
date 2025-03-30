@@ -1,5 +1,5 @@
 
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router'
 import Navbar from '../components/Navbar'
 import NotFound from '../components/NotFound'
 // import Footer from '@/components/Footer'
@@ -10,10 +10,12 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+  const { pathname } = useLocation()
+
   return (
     <>
       <div className="min-h-screen bg-black text-white">
-      <Navbar />
+      {pathname==='/' ? <Navbar /> : null}
       <Outlet/>
     </div>
     </>
