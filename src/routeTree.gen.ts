@@ -16,6 +16,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as UsersIndexImport } from './routes/users/index'
 import { Route as GenrateImageIndexImport } from './routes/genrateImage/index'
 import { Route as ChatsIndexImport } from './routes/chats/index'
+import { Route as AuthIndexImport } from './routes/auth/index'
 import { Route as UsersUseridImport } from './routes/users/$userid'
 
 // Create/Update Routes
@@ -50,6 +51,12 @@ const ChatsIndexRoute = ChatsIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AuthIndexRoute = AuthIndexImport.update({
+  id: '/auth/',
+  path: '/auth/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const UsersUseridRoute = UsersUseridImport.update({
   id: '/users/$userid',
   path: '/users/$userid',
@@ -79,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/users/$userid'
       fullPath: '/users/$userid'
       preLoaderRoute: typeof UsersUseridImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof rootRoute
     }
     '/chats/': {
@@ -111,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/users/$userid': typeof UsersUseridRoute
+  '/auth': typeof AuthIndexRoute
   '/chats': typeof ChatsIndexRoute
   '/genrateImage': typeof GenrateImageIndexRoute
   '/users': typeof UsersIndexRoute
@@ -120,6 +135,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/users/$userid': typeof UsersUseridRoute
+  '/auth': typeof AuthIndexRoute
   '/chats': typeof ChatsIndexRoute
   '/genrateImage': typeof GenrateImageIndexRoute
   '/users': typeof UsersIndexRoute
@@ -130,6 +146,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/users/$userid': typeof UsersUseridRoute
+  '/auth/': typeof AuthIndexRoute
   '/chats/': typeof ChatsIndexRoute
   '/genrateImage/': typeof GenrateImageIndexRoute
   '/users/': typeof UsersIndexRoute
@@ -141,16 +158,25 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/users/$userid'
+    | '/auth'
     | '/chats'
     | '/genrateImage'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/users/$userid' | '/chats' | '/genrateImage' | '/users'
+  to:
+    | '/'
+    | '/about'
+    | '/users/$userid'
+    | '/auth'
+    | '/chats'
+    | '/genrateImage'
+    | '/users'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/users/$userid'
+    | '/auth/'
     | '/chats/'
     | '/genrateImage/'
     | '/users/'
@@ -161,6 +187,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   UsersUseridRoute: typeof UsersUseridRoute
+  AuthIndexRoute: typeof AuthIndexRoute
   ChatsIndexRoute: typeof ChatsIndexRoute
   GenrateImageIndexRoute: typeof GenrateImageIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
@@ -170,6 +197,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   UsersUseridRoute: UsersUseridRoute,
+  AuthIndexRoute: AuthIndexRoute,
   ChatsIndexRoute: ChatsIndexRoute,
   GenrateImageIndexRoute: GenrateImageIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
@@ -188,6 +216,7 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/users/$userid",
+        "/auth/",
         "/chats/",
         "/genrateImage/",
         "/users/"
@@ -201,6 +230,9 @@ export const routeTree = rootRoute
     },
     "/users/$userid": {
       "filePath": "users/$userid.tsx"
+    },
+    "/auth/": {
+      "filePath": "auth/index.tsx"
     },
     "/chats/": {
       "filePath": "chats/index.tsx"
