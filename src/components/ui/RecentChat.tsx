@@ -20,7 +20,7 @@ const RecentChat = () => {
         {/* Sidebar */}
         <div
           className={`fixed inset-y-0 left-0 w-64 bg-black text-white p-8 flex flex-col transition-transform transform md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
-            } md:relative md:flex`}
+            } md:relative md:flex h-screen`}
         >
           {/* Logo */}
           <div className="flex items-center justify-between mb-24">
@@ -46,7 +46,7 @@ const RecentChat = () => {
           {/* Home Button at Bottom */}
           <div className="mt-20">
             <Link to="/">
-              <Button variant="outline" className="text-black text-sm w-full">
+              <Button variant="outline" className="text-black text-sm w-fit">
                 Go to Home
               </Button>
             </Link>

@@ -9,7 +9,7 @@ export const Route = createFileRoute('/chats/')({
 function RouteComponent() {
   return (
     <>
-      <div className='flex gap-0 lg:gap-18'>
+      <div className='flex gap-0 lg:gap-18 bg-black'>
         <div className="left z-50">
           <RecentChat />
         </div>
