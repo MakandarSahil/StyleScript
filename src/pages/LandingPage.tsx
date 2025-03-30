@@ -66,7 +66,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       <div className="absolute right-0 h-full w-full">
-        <video src="assets\landing.mp4" className="-z-10 w-[100%] h-[90%] object-cover" autoPlay loop muted />
+        {/* <video src="assets\landing.mp4" className="-z-10 w-[100%] h-[90%] object-cover" autoPlay loop muted /> */}
+        <video src="assets\landingComp.mp4" className="-z-10 w-[100%] h-[90%] object-cover" autoPlay loop muted  />
       </div>
       <BackgroundLines className="w-full flex flex-col items-center justify-center py-3 lg:py-16 px-4">
         <Button className="bg-primary hover:bg-primary/90 z-10 mt-10">New AI image generation</Button>
@@ -77,8 +78,10 @@ export default function LandingPage() {
           Unveiling a fashion destination where trends blend seamlessly with your <br className="hidden md:block" />{" "}
           individual style aspirations. Discover today!
         </h3>
+        <Link className="z-10 mt-6" to='/genrateImage'><Button className="bg-zinc-900 hover:bg-200 hover:text-zinc-200 border-2 border-black px-10 rounded-md">Create Your Design</Button>
+        </Link>
       </BackgroundLines>
-      <div className="w-full mt-10 lg:mt-28 rounded-xl">
+      <div className="w-full mt-8 lg:mt-28 rounded-xl">
         <ThreeDMarquee images={images} />
       </div>
 

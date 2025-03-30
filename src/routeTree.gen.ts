@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as UsersIndexImport } from './routes/users/index'
+import { Route as GenrateImageIndexImport } from './routes/genrateImage/index'
 import { Route as ChatsIndexImport } from './routes/chats/index'
 import { Route as UsersUseridImport } from './routes/users/$userid'
 
@@ -34,6 +35,12 @@ const IndexRoute = IndexImport.update({
 const UsersIndexRoute = UsersIndexImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const GenrateImageIndexRoute = GenrateImageIndexImport.update({
+  id: '/genrateImage/',
+  path: '/genrateImage/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -81,6 +88,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatsIndexImport
       parentRoute: typeof rootRoute
     }
+    '/genrateImage/': {
+      id: '/genrateImage/'
+      path: '/genrateImage'
+      fullPath: '/genrateImage'
+      preLoaderRoute: typeof GenrateImageIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/users/': {
       id: '/users/'
       path: '/users'
@@ -98,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/users/$userid': typeof UsersUseridRoute
   '/chats': typeof ChatsIndexRoute
+  '/genrateImage': typeof GenrateImageIndexRoute
   '/users': typeof UsersIndexRoute
 }
 
@@ -106,6 +121,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/users/$userid': typeof UsersUseridRoute
   '/chats': typeof ChatsIndexRoute
+  '/genrateImage': typeof GenrateImageIndexRoute
   '/users': typeof UsersIndexRoute
 }
 
@@ -115,15 +131,29 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/users/$userid': typeof UsersUseridRoute
   '/chats/': typeof ChatsIndexRoute
+  '/genrateImage/': typeof GenrateImageIndexRoute
   '/users/': typeof UsersIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/users/$userid' | '/chats' | '/users'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/users/$userid'
+    | '/chats'
+    | '/genrateImage'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/users/$userid' | '/chats' | '/users'
-  id: '__root__' | '/' | '/about' | '/users/$userid' | '/chats/' | '/users/'
+  to: '/' | '/about' | '/users/$userid' | '/chats' | '/genrateImage' | '/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/users/$userid'
+    | '/chats/'
+    | '/genrateImage/'
+    | '/users/'
   fileRoutesById: FileRoutesById
 }
 
@@ -132,6 +162,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   UsersUseridRoute: typeof UsersUseridRoute
   ChatsIndexRoute: typeof ChatsIndexRoute
+  GenrateImageIndexRoute: typeof GenrateImageIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
 }
 
@@ -140,6 +171,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   UsersUseridRoute: UsersUseridRoute,
   ChatsIndexRoute: ChatsIndexRoute,
+  GenrateImageIndexRoute: GenrateImageIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
 }
 
@@ -157,6 +189,7 @@ export const routeTree = rootRoute
         "/about",
         "/users/$userid",
         "/chats/",
+        "/genrateImage/",
         "/users/"
       ]
     },
@@ -171,6 +204,9 @@ export const routeTree = rootRoute
     },
     "/chats/": {
       "filePath": "chats/index.tsx"
+    },
+    "/genrateImage/": {
+      "filePath": "genrateImage/index.tsx"
     },
     "/users/": {
       "filePath": "users/index.tsx"

@@ -75,7 +75,12 @@ const Navbar = () => {
     <div className="w-full px-4 md:px-10 py-4 md:py-6 fixed flex items-center justify-between text-black bg-white z-50">
       <nav className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Left - Brand Name */}
-        <div className="text-lg font-bold text-black font-['cutom-font']">StyleScript</div>
+        <div className='flex items-center gap-2'>
+          <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center">
+            <span className="text-white font-bold text-sm">S</span>
+          </div>
+          <div className="text-lg font-bold text-black font-['cutom-font']">StyleScript</div>
+        </div>
 
         {/* Mobile Menu Toggle Button */}
         <button
@@ -92,17 +97,17 @@ const Navbar = () => {
             <div className="flex flex-col space-y-2">
               {/* Getting Started Section */}
               <div className="border rounded-md overflow-hidden">
-                <button 
+                <button
                   onClick={() => toggleSection('getting-started')}
                   className="w-full p-4 text-left font-medium flex justify-between items-center bg-gray-50"
                 >
                   Getting Started
-                  <ChevronDown 
-                    size={16} 
+                  <ChevronDown
+                    size={16}
                     className={`transition-transform ${expandedSection === 'getting-started' ? 'rotate-180' : ''}`}
                   />
                 </button>
-                
+
                 {expandedSection === 'getting-started' && (
                   <div className="p-2 bg-white">
                     <div className="bg-gray-50 p-4 mb-3 rounded-md">
@@ -129,23 +134,23 @@ const Navbar = () => {
 
               {/* Components Section */}
               <div className="border rounded-md overflow-hidden">
-                <button 
+                <button
                   onClick={() => toggleSection('components')}
                   className="w-full p-4 text-left font-medium flex justify-between items-center bg-gray-50"
                 >
                   Components
-                  <ChevronDown 
-                    size={16} 
+                  <ChevronDown
+                    size={16}
                     className={`transition-transform ${expandedSection === 'components' ? 'rotate-180' : ''}`}
                   />
                 </button>
-                
+
                 {expandedSection === 'components' && (
                   <div className="p-2 bg-white">
                     {components.map(component => (
-                      <Link 
-                        key={component.title} 
-                        to={component.href} 
+                      <Link
+                        key={component.title}
+                        to={component.href}
                         className="block p-3 hover:bg-gray-50 rounded-md"
                       >
                         <div className="font-medium">{component.title}</div>
