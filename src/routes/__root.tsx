@@ -11,9 +11,10 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
+      <div className="min-h-screen bg-black text-white">
       <Navbar />
-      <hr className='border-gray-100'/>
-      <Outlet />
+      <Outlet/>
+    </div>
     </>
   )
 }
