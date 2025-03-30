@@ -27,7 +27,7 @@ function RouteComponent() {
             <span>{data.email}</span>
           </div>
         </div>
-        <Link to='/users' className='text-blue-500 hover:text-blue-700'>
+        <Link search= {{page:2}} to='/users' className='text-blue-500 hover:text-blue-700'>
           Back to Users
         </Link>
       </div>

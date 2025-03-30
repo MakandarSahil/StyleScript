@@ -2,8 +2,14 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { fetchUsers, User } from '../../services/users'
 
 export const Route = createFileRoute('/users/')({
+  validateSearch: (search) => {
+    return {
+      page: search.page || 1
+    };
+  },
   component: RouteComponent,
-  loader: () => fetchUsers(),
+  loaderDeps: ({ search: { page } }) => page,
+  loader: async ({ deps: page }) => fetchUsers(page),
 })
 
 function RouteComponent() {
