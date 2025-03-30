@@ -65,28 +65,20 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen">
-      <BackgroundLines className="w-full flex flex-col items-center py-6 lg:py-16 px-4">
-        <Button className="bg-primary hover:bg-primary/90">New AI image generation</Button>
-        <h1 className="text-4xl md:text-6xl font-normal text-center mt-6">
+      <div className="absolute right-0 h-full w-full">
+        <video src="assets\landing.mp4" className="-z-10 w-[100%] h-[90%] object-cover" autoPlay loop muted />
+      </div>
+      <BackgroundLines className="w-full flex flex-col items-center justify-center py-3 lg:py-16 px-4">
+        <Button className="bg-primary hover:bg-primary/90 z-10 mt-10">New AI image generation</Button>
+        <h1 className="text-4xl md:text-6xl text-center mt-10 z-10 font-medium">
           Where style meets innovation ways of <br className="hidden md:block" /> meeting new fashion
         </h1>
-        <h3 className="text-center mt-6 text-[14px] font-thin">
+        <h3 className="text-center mt-6 text-[14px] z-10">
           Unveiling a fashion destination where trends blend seamlessly with your <br className="hidden md:block" />{" "}
           individual style aspirations. Discover today!
         </h3>
       </BackgroundLines>
-      {/* <BackgroundLines className="flex items-center justify-center w-full flex-col px-4">
-        <h2 className="bg-clip-text text-transparent text-center bg-gradient-to-b from-neutral-900 to-neutral-700 dark:from-neutral-600 dark:to-white text-2xl md:text-4xl lg:text-7xl font-sans py-2 md:py-10 relative z-20 font-bold tracking-tight">
-          Sanjana Airlines, <br /> Sajana Textiles.
-        </h2>
-        <p className="max-w-xl mx-auto text-sm md:text-lg text-neutral-700 dark:text-neutral-400 text-center">
-          Get the best advices from our experts, including expert artists,
-          painters, marathon enthusiasts and RDX, totally free.
-        </p>
-      </BackgroundLines> */}
-
-
-      <div className="w-full  rounded-xl">
+      <div className="w-full mt-10 lg:mt-28 rounded-xl">
         <ThreeDMarquee images={images} />
       </div>
 
@@ -96,14 +88,15 @@ export default function LandingPage() {
         </p>
         <TypewriterEffectSmooth words={words} />
         <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 space-x-0 md:space-x-4">
-          <Link to='/chats'><Button className="bg-transparent hover:bg-white hover:text-black border-2 border-white px-10 rounded-md">Create Your Design</Button>
+          <Link to='/chats'><Button className="bg-zinc-900 hover:bg-200 hover:text-zinc-200 border-2 border-black px-10 rounded-md">Create Your Design</Button>
           </Link>
-          <Button className="bg-white text-black hover:bg-gray-200 px-10 rounded-md">Signup</Button>
+          <Button className="bg-gray-300 text-black hover:bg-gray-200 px-10 rounded-md">Signup</Button>
         </div>
       </div>
       <div className="footer">
         <Footer />
       </div>
+
     </div>
   )
 }

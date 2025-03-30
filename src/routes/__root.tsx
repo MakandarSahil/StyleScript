@@ -14,7 +14,7 @@ function RootComponent() {
 
   return (
     <>
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-white text-black">
       {pathname==='/' ? <Navbar /> : null}
       <Outlet/>
     </div>
