@@ -125,6 +125,29 @@
 
 }
 
-* {
+/* * {
   font-family: 'cutom-font';
+} */
+
+* {
+  font-family: Montserrat;
+}
+
+body::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+/* Scrollbar track (background) */
+body::-webkit-scrollbar-track {
+  background: #f0f0f0; 
+  border-radius: 10px;
+}
+body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }

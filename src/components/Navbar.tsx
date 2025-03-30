@@ -47,12 +47,12 @@ const ListItem = React.forwardRef<
 
 ListItem.displayName = "ListItem"
 
-const MobileListItem = ({ title, href, description } : any) => (
-  <Link to={href} className="block p-3 border-b border-gray-100">
-    <div className="font-medium">{title}</div>
-    <p className="text-sm text-gray-500">{description}</p>
-  </Link>
-)
+// const MobileListItem = ({ title, href, description } : any) => (
+//   <Link to={href} className="block p-3 border-b border-gray-100">
+//     <div className="font-medium">{title}</div>
+//     <p className="text-sm text-gray-500">{description}</p>
+//   </Link>
+// )
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -72,7 +72,7 @@ const Navbar = () => {
   }
 
   return (
-    <div className="w-full px-4 md:px-10 py-4 md:py-6 fixed flex items-center justify-between text-black shadow-md z-50">
+    <div className="w-full px-4 md:px-10 py-4 md:py-6 fixed flex items-center justify-between text-black bg-black z-50">
       <nav className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Left - Brand Name */}
         <div className="text-lg font-bold text-white">StyleScript</div>
