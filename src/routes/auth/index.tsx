@@ -29,7 +29,7 @@ function RouteComponent() {
       {/* Right Section: Video Background */}
       <div className="relative bg-muted border-l-2 flex items-center justify-center">
         <video
-          src="assets/auth2.mp4"
+          src="assets/auth.mp4"
           autoPlay
           loop
           muted

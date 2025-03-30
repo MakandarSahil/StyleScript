@@ -169,10 +169,7 @@ const Navbar = () => {
               {/* Auth Buttons */}
               <div className="pt-4 flex flex-col gap-2">
                 <Link to="/auth">
-                  <Button className="w-full">Login</Button>
-                </Link>
-                <Link to="/auth">
-                  <Button className="w-full">Sign Up</Button>
+                  <Button className="w-full">Sign In</Button>
                 </Link>
               </div>
             </div>
@@ -238,10 +235,7 @@ const Navbar = () => {
         {/* Right - Auth Buttons - hidden on mobile */}
         <div className="hidden md:flex gap-2">
           <Link to="/auth">
-            <Button>Login</Button>
-          </Link>
-          <Link to="/auth">
-            <Button>Sign Up</Button>
+            <Button>Sign In</Button>
           </Link>
         </div>
       </nav>
