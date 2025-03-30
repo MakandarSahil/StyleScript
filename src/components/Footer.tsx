@@ -18,8 +18,8 @@ export const Footer: React.FC<FooterProps> = ({ className }) => {
           {/* Brand Section */}
           <div className="col-span-1 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                <span className="text-black font-bold text-sm">S</span>
+              <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
               </div>
               <span className="font-bold text-xl">StyleScript</span>
             </div>
