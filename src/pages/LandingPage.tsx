@@ -1,8 +1,10 @@
 "use client"
 
+import Footer from "@/components/Footer"
 import { BackgroundLines } from "@/components/ui/background-lines"
 import { Button } from "@/components/ui/button"
 import { ThreeDMarquee } from "@/components/ui/ThreeDMarquee"
+import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect"
 
 export default function LandingPage() {
   // Sample images array for the 3D marquee
@@ -40,6 +42,26 @@ export default function LandingPage() {
     "https://assets.aceternity.com/world-map.webp",
   ]
 
+  const words = [
+    {
+      text: "Build",
+    },
+    {
+      text: "awesome",
+    },
+    {
+      text: "cloths",
+    },
+    {
+      text: "with",
+    },
+    {
+      text: "StyleScript.",
+      className: "text-blue-500 dark:text-blue-500",
+    },
+  ];
+
+
   return (
     <div className="min-h-screen">
       <BackgroundLines className="w-full flex flex-col items-center py-6 lg:py-16 px-4">
@@ -65,6 +87,20 @@ export default function LandingPage() {
 
       <div className="w-full">
         <ThreeDMarquee images={images} />
+      </div>
+
+      <div className="flex flex-col items-center justify-center h-[40rem]  ">
+        <p className="text-neutral-600 dark:text-neutral-200 text-xs sm:text-base  ">
+          The road to style starts here
+        </p>
+        <TypewriterEffectSmooth words={words} />
+        <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 space-x-0 md:space-x-4">
+          <Button className="bg-transparent hover:bg-white hover:text-black border-2 border-white px-10 rounded-md">Create Your Design</Button>
+          <Button className="bg-white text-black hover:bg-gray-200 px-10 rounded-md">Signup</Button>
+        </div>
+      </div>
+      <div className="footer">
+        <Footer />
       </div>
     </div>
   )

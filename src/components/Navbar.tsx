@@ -75,7 +75,7 @@ const Navbar = () => {
     <div className="w-full px-4 md:px-10 py-4 md:py-6 fixed flex items-center justify-between text-black bg-black z-50">
       <nav className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Left - Brand Name */}
-        <div className="text-lg font-bold text-white">StyleScript</div>
+        <div className="text-lg font-bold text-white font-['cutom-font']">StyleScript</div>
 
         {/* Mobile Menu Toggle Button */}
         <button
