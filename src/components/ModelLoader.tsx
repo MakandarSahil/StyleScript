@@ -1,27 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { useGLTF } from '@react-three/drei';
+"use client"
+
+import type React from "react"
+import { useEffect, useState } from "react"
+import { useGLTF } from "@react-three/drei"
 
 interface Props {
-  modelPath: string;
+  modelPath: string
+  color: string
+  scale?: number
 }
 
-const ModelLoader: React.FC<Props> = ({ modelPath }) => {
-  const { scene } = useGLTF(modelPath);
-  const [scale, setScale] = useState(0);
-  
+const ModelLoader: React.FC<Props> = ({ modelPath, color, scale = 1 }) => {
+  const { scene } = useGLTF(modelPath)
+  const [modelScale, setModelScale] = useState(0)
+
   useEffect(() => {
-    setScale(0);
-    const timeout = setTimeout(() => setScale(1), 300);
-    return () => clearTimeout(timeout);
-  }, [modelPath]);
+    scene.traverse((child: any) => {
+      if (child.isMesh && child.material) {
+        child.material.color.set(color)
+        child.material.needsUpdate = true
+      }
+    })
+  }, [color, scene])
 
-  return (
-    <primitive 
-      object={scene} 
-      scale={scale}
-      position={[0, -1, 0]}
-    />
-  );
-};
+  useEffect(() => {
+    setModelScale(0)
+    const timeout = setTimeout(() => setModelScale(scale), 300)
+    return () => clearTimeout(timeout)
+  }, [modelPath, scale])
 
-export default ModelLoader;
+  return <primitive object={scene} scale={modelScale} position={[0, -0.8, 0]} castShadow receiveShadow />
+}
+
+export default ModelLoader
+
