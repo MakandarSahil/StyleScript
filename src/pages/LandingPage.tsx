@@ -78,7 +78,9 @@ export default function LandingPage() {
           Unveiling a fashion destination where trends blend seamlessly with your <br className="hidden md:block" />{" "}
           individual style aspirations. Discover today!
         </h3>
-        <Link className="z-10 mt-6" to='/genrateImage'><Button className="bg-zinc-900 hover:bg-200 hover:text-zinc-200 border-2 border-black px-10 rounded-md">Create Your Design</Button>
+        {/* <Link className="z-10 mt-6" to='/genrateImage'><Button className="bg-zinc-900 hover:bg-200 hover:text-zinc-200 border-2 border-black px-10 rounded-md">Create Your Design</Button>
+        </Link> */}
+        <Link className="z-10 mt-6" to='/genrateImage'><Button className="bg-zinc-900 hover:bg-200 hover:text-zinc-200 border-2 border-black px-10 rounded-md">Explore</Button>
         </Link>
       </BackgroundLines>
       <div className="w-full mt-8 lg:mt-28 rounded-xl">

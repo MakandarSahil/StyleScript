@@ -2,10 +2,17 @@
 
 import type React from "react"
 import { Suspense, useState, useRef } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Environment, useProgress, Html, ContactShadows } from "@react-three/drei"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import {
+  OrbitControls,
+  Environment,
+  useProgress,
+  Html,
+  ContactShadows
+} from "@react-three/drei"
 import ModelLoader from "./ModelLoader"
 import type { Group } from "three"
+import { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 
 interface Props {
   sleeveType: "full" | "half"
@@ -38,129 +45,72 @@ function RotatingModel({ isRotating, children }: { isRotating: boolean; children
 
 const ClothViewer: React.FC<Props> = ({ sleeveType, color }) => {
   const [isRotating, setIsRotating] = useState(true)
+  const controlsRef = useRef<OrbitControlsImpl>(null)
   const modelPath = `/models/shirt_${sleeveType}.glb`
 
   return (
-    <div className="relative w-full h-full min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] rounded-lg bg-gradient-to-b from-gray-50 to-gray-100 shadow-inner overflow-hidden">
-      <Canvas camera={{ position: [10, 8, 10], fov: 30 }} shadows>
-        <color attach="background" args={["#f8fafc"]} />
+    <div className="relative w-full h-full min-h-[500px] sm:min-h-[600px] md:min-h-[650px] lg:min-h-[700px] bg-gradient-to-br from-white via-gray-100 to-sky-100 rounded-xl shadow-xl overflow-hidden">
+      <Canvas camera={{ position: [0, 1.5, 4.5], fov: 35 }} shadows>
+        <color attach="background" args={["#f9fafb"]} />
 
         <ambientLight intensity={0.7} />
         <directionalLight position={[10, 10, 5]} intensity={1.5} castShadow />
-        <directionalLight position={[-10, -10, -5]} intensity={0.7} />
         <spotLight position={[0, 10, 0]} intensity={0.5} castShadow />
 
         <Suspense fallback={<Loader />}>
           <RotatingModel isRotating={isRotating}>
-            <ModelLoader color={color} modelPath={modelPath} scale={1.5} />
+            <ModelLoader color={color} modelPath={modelPath} scale={1.2} />
           </RotatingModel>
           <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={5} blur={2.5} far={4} />
           <Environment preset="city" />
         </Suspense>
 
         <OrbitControls
+          ref={controlsRef}
           enablePan={false}
           enableZoom={true}
           minPolarAngle={Math.PI / 6}
           maxPolarAngle={Math.PI / 2}
-          minDistance={2}
-          maxDistance={6}
+          minDistance={2.5}
+          maxDistance={5.5}
         />
       </Canvas>
 
-      <div className="absolute bottom-4 right-4 flex flex-col gap-2 sm:flex-row">
+      {/* Controls */}
+      <div className="absolute bottom-4 right-4 flex flex-col gap-2 sm:flex-row z-10">
         <button
           onClick={() => setIsRotating(!isRotating)}
-          className="bg-white/80 backdrop-blur-sm px-3 py-2 text-sm rounded-md shadow-lg hover:bg-white transition flex items-center gap-2"
+          className="bg-white/90 hover:bg-blue-100 text-gray-700 hover:text-blue-600 transition-all duration-200 px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
+          title="Start/Stop auto-rotation"
         >
           {isRotating ? (
             <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="6" y="4" width="4" height="16"></rect>
-                <rect x="14" y="4" width="4" height="16"></rect>
-              </svg>
-              <span className="hidden sm:inline">Pause Rotation</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+              <span className="hidden sm:inline">Pause</span>
             </>
           ) : (
             <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-              <span className="hidden sm:inline">Start Rotation</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span className="hidden sm:inline">Rotate</span>
             </>
           )}
         </button>
 
         <button
-          onClick={() => {
-            // Reset camera position
-            const canvas = document.querySelector("canvas")
-            if (canvas) {
-              const event = new CustomEvent("reset-camera")
-              canvas.dispatchEvent(event)
-            }
-          }}
-          className="bg-white/80 backdrop-blur-sm px-3 py-2 text-sm rounded-md shadow-lg hover:bg-white transition flex items-center gap-2"
+          onClick={() => controlsRef.current?.reset()}
+          className="bg-white/90 hover:bg-blue-100 text-gray-700 hover:text-blue-600 transition-all duration-200 px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
+          title="Reset camera view"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"></path>
-            <path d="M17 12H7"></path>
-            <path d="m11 8-4 4 4 4"></path>
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"></path><path d="M17 12H7"></path><path d="m11 8-4 4 4 4"></path></svg>
           <span className="hidden sm:inline">Reset View</span>
         </button>
       </div>
 
-      <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm px-3 py-2 text-xs sm:text-sm rounded-md shadow-lg">
+      {/* Drag hint */}
+      <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm px-3 py-2 text-xs sm:text-sm rounded-md shadow-md">
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline">Drag</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path>
-            <path d="M18 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path>
-            <path d="M8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path>
-            <path d="M16 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path>
-            <path d="M10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path>
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path><path d="M18 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path><path d="M8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path><path d="M16 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path><path d="M10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path></svg>
           <span>to rotate</span>
         </div>
       </div>
@@ -169,4 +119,3 @@ const ClothViewer: React.FC<Props> = ({ sleeveType, color }) => {
 }
 
 export default ClothViewer
-
