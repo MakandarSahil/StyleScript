@@ -16,8 +16,10 @@ import { Route as IndexImport } from './routes/index'
 import { Route as UsersIndexImport } from './routes/users/index'
 import { Route as GenrateImageIndexImport } from './routes/genrateImage/index'
 import { Route as ChatsIndexImport } from './routes/chats/index'
+import { Route as CatalogIndexImport } from './routes/catalog/index'
 import { Route as AuthIndexImport } from './routes/auth/index'
 import { Route as UsersUseridImport } from './routes/users/$userid'
+import { Route as CatalogClothIdImport } from './routes/catalog/$clothId'
 
 // Create/Update Routes
 
@@ -51,6 +53,12 @@ const ChatsIndexRoute = ChatsIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const CatalogIndexRoute = CatalogIndexImport.update({
+  id: '/catalog/',
+  path: '/catalog/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const AuthIndexRoute = AuthIndexImport.update({
   id: '/auth/',
   path: '/auth/',
@@ -60,6 +68,12 @@ const AuthIndexRoute = AuthIndexImport.update({
 const UsersUseridRoute = UsersUseridImport.update({
   id: '/users/$userid',
   path: '/users/$userid',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CatalogClothIdRoute = CatalogClothIdImport.update({
+  id: '/catalog/$clothId',
+  path: '/catalog/$clothId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -81,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
+    '/catalog/$clothId': {
+      id: '/catalog/$clothId'
+      path: '/catalog/$clothId'
+      fullPath: '/catalog/$clothId'
+      preLoaderRoute: typeof CatalogClothIdImport
+      parentRoute: typeof rootRoute
+    }
     '/users/$userid': {
       id: '/users/$userid'
       path: '/users/$userid'
@@ -93,6 +114,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/catalog/': {
+      id: '/catalog/'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogIndexImport
       parentRoute: typeof rootRoute
     }
     '/chats/': {
@@ -124,8 +152,10 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/catalog/$clothId': typeof CatalogClothIdRoute
   '/users/$userid': typeof UsersUseridRoute
   '/auth': typeof AuthIndexRoute
+  '/catalog': typeof CatalogIndexRoute
   '/chats': typeof ChatsIndexRoute
   '/genrateImage': typeof GenrateImageIndexRoute
   '/users': typeof UsersIndexRoute
@@ -134,8 +164,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/catalog/$clothId': typeof CatalogClothIdRoute
   '/users/$userid': typeof UsersUseridRoute
   '/auth': typeof AuthIndexRoute
+  '/catalog': typeof CatalogIndexRoute
   '/chats': typeof ChatsIndexRoute
   '/genrateImage': typeof GenrateImageIndexRoute
   '/users': typeof UsersIndexRoute
@@ -145,8 +177,10 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/catalog/$clothId': typeof CatalogClothIdRoute
   '/users/$userid': typeof UsersUseridRoute
   '/auth/': typeof AuthIndexRoute
+  '/catalog/': typeof CatalogIndexRoute
   '/chats/': typeof ChatsIndexRoute
   '/genrateImage/': typeof GenrateImageIndexRoute
   '/users/': typeof UsersIndexRoute
@@ -157,8 +191,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/catalog/$clothId'
     | '/users/$userid'
     | '/auth'
+    | '/catalog'
     | '/chats'
     | '/genrateImage'
     | '/users'
@@ -166,8 +202,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/catalog/$clothId'
     | '/users/$userid'
     | '/auth'
+    | '/catalog'
     | '/chats'
     | '/genrateImage'
     | '/users'
@@ -175,8 +213,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/catalog/$clothId'
     | '/users/$userid'
     | '/auth/'
+    | '/catalog/'
     | '/chats/'
     | '/genrateImage/'
     | '/users/'
@@ -186,8 +226,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CatalogClothIdRoute: typeof CatalogClothIdRoute
   UsersUseridRoute: typeof UsersUseridRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  CatalogIndexRoute: typeof CatalogIndexRoute
   ChatsIndexRoute: typeof ChatsIndexRoute
   GenrateImageIndexRoute: typeof GenrateImageIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
@@ -196,8 +238,10 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CatalogClothIdRoute: CatalogClothIdRoute,
   UsersUseridRoute: UsersUseridRoute,
   AuthIndexRoute: AuthIndexRoute,
+  CatalogIndexRoute: CatalogIndexRoute,
   ChatsIndexRoute: ChatsIndexRoute,
   GenrateImageIndexRoute: GenrateImageIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
@@ -215,8 +259,10 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
+        "/catalog/$clothId",
         "/users/$userid",
         "/auth/",
+        "/catalog/",
         "/chats/",
         "/genrateImage/",
         "/users/"
@@ -228,11 +274,17 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.tsx"
     },
+    "/catalog/$clothId": {
+      "filePath": "catalog/$clothId.tsx"
+    },
     "/users/$userid": {
       "filePath": "users/$userid.tsx"
     },
     "/auth/": {
       "filePath": "auth/index.tsx"
+    },
+    "/catalog/": {
+      "filePath": "catalog/index.tsx"
     },
     "/chats/": {
       "filePath": "chats/index.tsx"
