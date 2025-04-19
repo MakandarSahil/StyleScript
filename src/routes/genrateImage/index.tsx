@@ -1,8 +1,9 @@
 
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import ClothViewer from "../../components/ClothViewer"
 import { Loader2, Download, Share2, Save, Undo2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export const Route = createFileRoute("/genrateImage/")({
   component: RouteComponent,
@@ -16,6 +17,7 @@ function RouteComponent() {
   const [brightness, setBrightness] = useState<number>(100)
   const [recentColors, setRecentColors] = useState<string[]>(["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"])
 
+  const navigate = useNavigate();
   // Adjust color brightness
   const adjustedColor = adjustColorBrightness(color, brightness)
 
@@ -50,7 +52,8 @@ function RouteComponent() {
           <div className="w-full">
             <div className="flex flex-col sm:flex-row">
               <div className="sm:w-1/2 lg:w-3/5 h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] bg-gray-50 relative">
-                <ClothViewer sleeveType={sleeveType} color={adjustedColor} />
+                {/* <ClothViewer sleeveType={sleeveType} color={adjustedColor} /> */}
+
 
                 {isLoading && (
                   <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
@@ -77,12 +80,18 @@ function RouteComponent() {
 
               <div className="p-4 sm:p-6 md:p-8 sm:w-1/2 lg:w-2/5">
                 <div className="flex w-full mb-6 border rounded-lg overflow-hidden">
-                  <button
-                    className={`flex-1 py-2 text-center text-sm font-medium ${activeTab === "customize" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"}`}
-                    onClick={() => setActiveTab("customize")}
+                  <Button
+                    className="w-full"
+                    onClick={() =>
+                      navigate({
+                        to: "/catalog/$clothId",
+                        params: { clothId: "shirt" },        // ✅ required for dynamic route
+                        search: { model: "/models/shirt_full.glb" }, // ✅ your dynamic model
+                      })
+                    }
                   >
                     Customize
-                  </button>
+                  </Button>
                   <button
                     className={`flex-1 py-2 text-center text-sm font-medium ${activeTab === "preview" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"}`}
                     onClick={() => setActiveTab("preview")}
@@ -128,9 +137,8 @@ function RouteComponent() {
                           <button
                             key={recentColor}
                             onClick={() => handleColorSelect(recentColor)}
-                            className={`w-8 h-8 rounded-full border-2 transition-all ${
-                              color === recentColor ? "border-gray-900 scale-110" : "border-gray-200"
-                            }`}
+                            className={`w-8 h-8 rounded-full border-2 transition-all ${color === recentColor ? "border-gray-900 scale-110" : "border-gray-200"
+                              }`}
                             style={{ backgroundColor: recentColor }}
                             aria-label={`Select color ${recentColor}`}
                           />

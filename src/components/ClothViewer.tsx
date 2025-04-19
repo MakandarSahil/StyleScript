@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { Suspense, useState, useRef } from "react"
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useFrame } from "@react-three/fiber"
 import {
   OrbitControls,
   Environment,
@@ -15,7 +15,7 @@ import type { Group } from "three"
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 
 interface Props {
-  sleeveType: "full" | "half"
+  modelPath: string
   color: string
 }
 
@@ -43,10 +43,9 @@ function RotatingModel({ isRotating, children }: { isRotating: boolean; children
   return <group ref={groupRef}>{children}</group>
 }
 
-const ClothViewer: React.FC<Props> = ({ sleeveType, color }) => {
+const ClothViewer: React.FC<Props> = ({ modelPath, color }) => {
   const [isRotating, setIsRotating] = useState(true)
   const controlsRef = useRef<OrbitControlsImpl>(null)
-  const modelPath = `/models/shirt_${sleeveType}.glb`
 
   return (
     <div className="relative w-full h-full min-h-[500px] sm:min-h-[600px] md:min-h-[650px] lg:min-h-[700px] bg-gradient-to-br from-white via-gray-100 to-sky-100 rounded-xl shadow-xl overflow-hidden">

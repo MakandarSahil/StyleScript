@@ -1,11 +1,17 @@
 
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { useState } from "react"
 import ClothViewer from "../../components/ClothViewer"
 import { Loader2, Download, Share2, Save, Undo2 } from "lucide-react"
 
 export const Route = createFileRoute("/catalog/$clothId")({
+  
   component: RouteComponent,
+  validateSearch: (search) => {
+    return {
+      model: search.model as string ?? "/models/shirt_full.glb"
+    }
+  }
 })
 
 function RouteComponent() {
@@ -18,6 +24,11 @@ function RouteComponent() {
 
   // Adjust color brightness
   const adjustedColor = adjustColorBrightness(color, brightness)
+
+  const { model } = useSearch({ from: "/catalog/$clothId" }) as { model: string }
+
+  // Replace hardcoded path with dynamic one
+  const modelPath = model ?? "/models/shirt_full.glb"
 
   const handleGenerateImage = () => {
     setIsLoading(true)
@@ -50,7 +61,7 @@ function RouteComponent() {
           <div className="w-full">
             <div className="flex flex-col sm:flex-row">
               <div className="sm:w-1/2 lg:w-3/5 h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] bg-gray-50 relative">
-                <ClothViewer sleeveType={sleeveType} color={adjustedColor} />
+              <ClothViewer modelPath={modelPath} color="#3B82F6" />
 
                 {isLoading && (
                   <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
