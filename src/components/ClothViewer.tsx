@@ -1,8 +1,7 @@
 "use client"
 
-import type React from "react"
-import { Suspense, useState, useRef } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
+import { Suspense, useRef } from "react"
+import { Canvas } from "@react-three/fiber"
 import {
   OrbitControls,
   Environment,
@@ -11,7 +10,6 @@ import {
   ContactShadows
 } from "@react-three/drei"
 import ModelLoader from "./ModelLoader"
-import type { Group } from "three"
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 
 interface Props {
@@ -24,43 +22,31 @@ function Loader() {
   return (
     <Html center>
       <div className="flex flex-col items-center justify-center">
-        <div className="w-20 h-20 border-4 border-t-blue-500 border-b-blue-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-lg font-medium text-gray-700">{progress.toFixed(0)}% loaded</p>
+        <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm font-medium text-gray-700">{progress.toFixed(0)}% loaded</p>
       </div>
     </Html>
   )
 }
 
-function RotatingModel({ isRotating, children }: { isRotating: boolean; children: React.ReactNode }) {
-  const groupRef = useRef<Group>(null)
-
-  useFrame((_, delta) => {
-    if (isRotating && groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.5
-    }
-  })
-
-  return <group ref={groupRef}>{children}</group>
-}
-
 const ClothViewer: React.FC<Props> = ({ modelPath, color }) => {
-  const [isRotating, setIsRotating] = useState(true)
   const controlsRef = useRef<OrbitControlsImpl>(null)
 
   return (
     <div className="relative w-full h-full min-h-[500px] sm:min-h-[600px] md:min-h-[650px] lg:min-h-[700px] bg-gradient-to-br from-white via-gray-100 to-sky-100 rounded-xl shadow-xl overflow-hidden">
-      <Canvas camera={{ position: [0, 1.5, 4.5], fov: 35 }} shadows>
+      <Canvas camera={{ position: [0, 1.6, 3.2], fov: 32 }} shadows>
         <color attach="background" args={["#f9fafb"]} />
-
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[10, 10, 5]} intensity={1.5} castShadow />
-        <spotLight position={[0, 10, 0]} intensity={0.5} castShadow />
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[10, 10, 5]} intensity={1.2} />
+        <spotLight position={[0, 5, 2]} angle={0.3} penumbra={1} intensity={1} castShadow />
 
         <Suspense fallback={<Loader />}>
-          <RotatingModel isRotating={isRotating}>
-            <ModelLoader color={color} modelPath={modelPath} scale={1.2} />
-          </RotatingModel>
-          <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={5} blur={2.5} far={4} />
+          {/* Adjusted position and scale */}
+          <group position={[0, -0.9, 0]} scale={[1.4, 1.4, 1.4]}>
+            <ModelLoader color={color} modelPath={modelPath} />
+          </group>
+
+          <ContactShadows position={[0, -1.25, 0]} opacity={0.45} scale={4.5} blur={2.8} far={5} />
           <Environment preset="city" />
         </Suspense>
 
@@ -68,33 +54,16 @@ const ClothViewer: React.FC<Props> = ({ modelPath, color }) => {
           ref={controlsRef}
           enablePan={false}
           enableZoom={true}
-          minPolarAngle={Math.PI / 6}
+          enableRotate={true}
+          minPolarAngle={Math.PI / 4}
           maxPolarAngle={Math.PI / 2}
-          minDistance={2.5}
-          maxDistance={5.5}
+          minDistance={2.4}
+          maxDistance={5.2}
         />
       </Canvas>
 
-      {/* Controls */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-2 sm:flex-row z-10">
-        <button
-          onClick={() => setIsRotating(!isRotating)}
-          className="bg-white/90 hover:bg-blue-100 text-gray-700 hover:text-blue-600 transition-all duration-200 px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
-          title="Start/Stop auto-rotation"
-        >
-          {isRotating ? (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-              <span className="hidden sm:inline">Pause</span>
-            </>
-          ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              <span className="hidden sm:inline">Rotate</span>
-            </>
-          )}
-        </button>
-
+      {/* Reset Button */}
+      <div className="absolute bottom-4 right-4 z-10">
         <button
           onClick={() => controlsRef.current?.reset()}
           className="bg-white/90 hover:bg-blue-100 text-gray-700 hover:text-blue-600 transition-all duration-200 px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
