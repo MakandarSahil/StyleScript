@@ -308,7 +308,7 @@ function RouteComponent() {
                       </div>
                       <button
                         className="ml-4 px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
-                      // onClick={() => navigate({ to: "/cart" })}
+                        onClick={() => navigate({ to: "/cart" })}
                       >
                         View Cart
                       </button>

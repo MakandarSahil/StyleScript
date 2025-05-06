@@ -17,6 +17,7 @@ import { Route as UsersIndexImport } from './routes/users/index'
 import { Route as GenrateImageIndexImport } from './routes/genrateImage/index'
 import { Route as ChatsIndexImport } from './routes/chats/index'
 import { Route as CatalogIndexImport } from './routes/catalog/index'
+import { Route as CartIndexImport } from './routes/cart/index'
 import { Route as AuthIndexImport } from './routes/auth/index'
 import { Route as UsersUseridImport } from './routes/users/$userid'
 import { Route as CatalogClothIdImport } from './routes/catalog/$clothId'
@@ -56,6 +57,12 @@ const ChatsIndexRoute = ChatsIndexImport.update({
 const CatalogIndexRoute = CatalogIndexImport.update({
   id: '/catalog/',
   path: '/catalog/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CartIndexRoute = CartIndexImport.update({
+  id: '/cart/',
+  path: '/cart/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -116,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof rootRoute
     }
+    '/cart/': {
+      id: '/cart/'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/catalog/': {
       id: '/catalog/'
       path: '/catalog'
@@ -155,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/catalog/$clothId': typeof CatalogClothIdRoute
   '/users/$userid': typeof UsersUseridRoute
   '/auth': typeof AuthIndexRoute
+  '/cart': typeof CartIndexRoute
   '/catalog': typeof CatalogIndexRoute
   '/chats': typeof ChatsIndexRoute
   '/genrateImage': typeof GenrateImageIndexRoute
@@ -167,6 +182,7 @@ export interface FileRoutesByTo {
   '/catalog/$clothId': typeof CatalogClothIdRoute
   '/users/$userid': typeof UsersUseridRoute
   '/auth': typeof AuthIndexRoute
+  '/cart': typeof CartIndexRoute
   '/catalog': typeof CatalogIndexRoute
   '/chats': typeof ChatsIndexRoute
   '/genrateImage': typeof GenrateImageIndexRoute
@@ -180,6 +196,7 @@ export interface FileRoutesById {
   '/catalog/$clothId': typeof CatalogClothIdRoute
   '/users/$userid': typeof UsersUseridRoute
   '/auth/': typeof AuthIndexRoute
+  '/cart/': typeof CartIndexRoute
   '/catalog/': typeof CatalogIndexRoute
   '/chats/': typeof ChatsIndexRoute
   '/genrateImage/': typeof GenrateImageIndexRoute
@@ -194,6 +211,7 @@ export interface FileRouteTypes {
     | '/catalog/$clothId'
     | '/users/$userid'
     | '/auth'
+    | '/cart'
     | '/catalog'
     | '/chats'
     | '/genrateImage'
@@ -205,6 +223,7 @@ export interface FileRouteTypes {
     | '/catalog/$clothId'
     | '/users/$userid'
     | '/auth'
+    | '/cart'
     | '/catalog'
     | '/chats'
     | '/genrateImage'
@@ -216,6 +235,7 @@ export interface FileRouteTypes {
     | '/catalog/$clothId'
     | '/users/$userid'
     | '/auth/'
+    | '/cart/'
     | '/catalog/'
     | '/chats/'
     | '/genrateImage/'
@@ -229,6 +249,7 @@ export interface RootRouteChildren {
   CatalogClothIdRoute: typeof CatalogClothIdRoute
   UsersUseridRoute: typeof UsersUseridRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  CartIndexRoute: typeof CartIndexRoute
   CatalogIndexRoute: typeof CatalogIndexRoute
   ChatsIndexRoute: typeof ChatsIndexRoute
   GenrateImageIndexRoute: typeof GenrateImageIndexRoute
@@ -241,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogClothIdRoute: CatalogClothIdRoute,
   UsersUseridRoute: UsersUseridRoute,
   AuthIndexRoute: AuthIndexRoute,
+  CartIndexRoute: CartIndexRoute,
   CatalogIndexRoute: CatalogIndexRoute,
   ChatsIndexRoute: ChatsIndexRoute,
   GenrateImageIndexRoute: GenrateImageIndexRoute,
@@ -262,6 +284,7 @@ export const routeTree = rootRoute
         "/catalog/$clothId",
         "/users/$userid",
         "/auth/",
+        "/cart/",
         "/catalog/",
         "/chats/",
         "/genrateImage/",
@@ -282,6 +305,9 @@ export const routeTree = rootRoute
     },
     "/auth/": {
       "filePath": "auth/index.tsx"
+    },
+    "/cart/": {
+      "filePath": "cart/index.tsx"
     },
     "/catalog/": {
       "filePath": "catalog/index.tsx"
