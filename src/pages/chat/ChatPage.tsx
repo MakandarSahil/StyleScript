@@ -68,7 +68,8 @@ export default function StyleScriptChat() {
 
     try {
       // const apiUrl = `${import.meta.env.VITE_API_URL}/analyze`
-      const apiUrl = `http://43.204.106.151:5000/analyze`
+      // const apiUrl = `http://43.204.106.151:5000/analyze`
+      const apiUrl = `http://localhost:5000/analyze`
 
       const response = await fetch(apiUrl, {
         method: "POST",
