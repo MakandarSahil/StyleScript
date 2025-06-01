@@ -12,7 +12,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 
 interface SkinToneAnalysis {
   category: string
@@ -311,16 +310,16 @@ export default function StyleScriptChat() {
   const LoadingMessage = () => (
     <div className="flex items-start space-x-3">
       <Avatar className="h-8 w-8">
-        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-pink-600 text-white">
+        <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
           <Bot className="h-4 w-4" />
         </AvatarFallback>
       </Avatar>
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm max-w-md">
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
           </div>
           <span className="text-sm text-slate-600">
             {imagePreview ? "Analyzing your photo..." : "Generating recommendations..."}
@@ -331,10 +330,10 @@ export default function StyleScriptChat() {
   )
 
   const SkinAnalysisCard = ({ analysis }: { analysis: SkinToneAnalysis }) => (
-    <Card className="mt-3 border-blue-200 shadow-lg">
+    <Card className="mt-3 border-purple-200 shadow-lg">
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Palette className="h-5 w-5 text-blue-600" />
+          <Palette className="h-5 w-5 text-purple-600" />
           <h3 className="text-lg font-semibold text-slate-900">Skin Tone Analysis</h3>
           <Badge variant="secondary" className="bg-green-50 text-green-700">
             {analysis.confidence}% Confidence
@@ -350,10 +349,10 @@ export default function StyleScriptChat() {
               />
               <div>
                 <div className="flex items-center space-x-2 mb-1">
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
                     {analysis.category}
                   </Badge>
-                  <Badge variant="outline" className="border-blue-200">
+                  <Badge variant="outline" className="border-purple-200">
                     {analysis.undertone}
                   </Badge>
                 </div>
@@ -506,21 +505,30 @@ export default function StyleScriptChat() {
   )
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-        <div className="flex items-center space-x-3">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">Style Consultation</h1>
-            <p className="text-sm text-slate-600">AI-powered style analysis and recommendations</p>
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-pink-600">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">StyleScript AI</h1>
+              <p className="text-sm text-slate-600">Powered by Advanced AI & Computer Vision</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+              Python + Gemini AI
+            </Badge>
           </div>
         </div>
       </header>
 
       {/* Messages */}
       <ScrollArea className="flex-1 px-6 py-4">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -535,7 +543,7 @@ export default function StyleScriptChat() {
                       ? "bg-slate-900 text-white"
                       : message.role === "system"
                         ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-                        : "bg-gradient-to-r from-blue-600 to-pink-600 text-white"
+                        : "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
                   }
                 >
                   {message.role === "user" ? (
@@ -583,7 +591,7 @@ export default function StyleScriptChat() {
                     {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                   {message.type === "analysis" && (
-                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">
+                    <Badge variant="secondary" className="text-xs bg-purple-50 text-purple-700">
                       Python Analysis
                     </Badge>
                   )}
@@ -604,7 +612,7 @@ export default function StyleScriptChat() {
 
       {/* Input Area */}
       <div className="border-t border-slate-200 bg-white/80 backdrop-blur-sm px-6 py-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
           <input
             type="file"
@@ -617,17 +625,17 @@ export default function StyleScriptChat() {
 
           {/* Image Preview */}
           {imagePreview && (
-            <div className="mb-3 flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="h-16 w-16 rounded-lg overflow-hidden border border-blue-300">
+            <div className="mb-3 flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="h-16 w-16 rounded-lg overflow-hidden border border-purple-300">
                 <img src={imagePreview || "/placeholder.svg"} alt="Preview" className="h-full w-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-blue-900">Image ready for analysis</p>
-                <p className="text-xs text-blue-700">
+                <p className="text-sm font-medium text-purple-900">Image ready for analysis</p>
+                <p className="text-xs text-purple-700">
                   Our Python model will analyze your skin tone and Gemini AI will provide personalized recommendations
                 </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={removeImage} className="h-8 w-8 text-blue-600">
+              <Button variant="ghost" size="icon" onClick={removeImage} className="h-8 w-8 text-purple-600">
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -644,7 +652,7 @@ export default function StyleScriptChat() {
                   ? "Ask follow-up questions about your style, request specific outfit ideas, or upload a new photo..."
                   : "Upload a photo for skin tone analysis, or ask me any style-related questions..."
               }
-              className="min-h-[60px] pr-24 resize-none border-slate-200 focus:border-blue-400 focus:ring-blue-400"
+              className="min-h-[60px] pr-24 resize-none border-slate-200 focus:border-purple-400 focus:ring-purple-400"
               disabled={isAnalyzing}
             />
             <div className="absolute right-2 bottom-2 flex items-center space-x-1">
@@ -653,7 +661,7 @@ export default function StyleScriptChat() {
                 variant="ghost"
                 size="icon"
                 onClick={triggerCameraInput}
-                className="h-8 w-8 text-slate-500 hover:text-blue-600"
+                className="h-8 w-8 text-slate-500 hover:text-purple-600"
                 disabled={isAnalyzing}
                 title="Take photo"
               >
@@ -664,7 +672,7 @@ export default function StyleScriptChat() {
                 variant="ghost"
                 size="icon"
                 onClick={triggerFileInput}
-                className="h-8 w-8 text-slate-500 hover:text-blue-600"
+                className="h-8 w-8 text-slate-500 hover:text-purple-600"
                 disabled={isAnalyzing}
                 title="Upload image"
               >
@@ -674,7 +682,7 @@ export default function StyleScriptChat() {
                 type="button"
                 onClick={handleSendMessage}
                 disabled={(!inputMessage.trim() && !imagePreview) || isAnalyzing}
-                className="h-8 w-8 bg-black"
+                className="h-8 w-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 size="icon"
                 title="Send message"
               >
