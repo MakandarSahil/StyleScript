@@ -1,68 +1,72 @@
+"use client"
+
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Camera, Upload, X, Sparkles, Palette, Shirt, Crown, TrendingUp } from "lucide-react"
+import { Send, Camera, Upload, X, Sparkles, Palette, User, Bot } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { Separator } from "@/components/ui/separator"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+
+interface SkinToneAnalysis {
+  category: string
+  undertone: string
+  hex: string
+  confidence: number
+  description: string
+  suggestedColors: Array<{
+    name: string
+    hex: string
+    category: "primary" | "secondary" | "accent"
+    suitability: number
+  }>
+}
+
+interface GeminiResponse {
+  styleRecommendations: string
+  outfitSuggestions: Array<{
+    occasion: string
+    description: string
+    items: string[]
+    colorCombinations: string[]
+  }>
+  personalizedTips: string[]
+  seasonalAdvice: string
+  shoppingGuide: string
+}
 
 interface Message {
   id: string
-  role: "user" | "assistant"
+  role: "user" | "assistant" | "system"
   content: string
   timestamp: Date
   image?: string
-  analysis?: StyleAnalysis
-  type?: "welcome" | "analysis" | "conversation" | "suggestion"
-}
-
-interface StyleAnalysis {
-  skinTone: {
-    category: string
-    undertone: string
-    hex: string
-    confidence: number
-    description: string
-  }
-  colorAnalysis: {
-    dominantColors: Array<{ name: string; hex: string; percentage: number }>
-    seasonalType: string
-    colorHarmony: string
-    recommendations: string[]
-  }
-  styleRecommendations: {
-    personalityProfile: string
-    outfitSuggestions: Array<{
-      occasion: string
-      items: string[]
-      colors: string[]
-      reasoning: string
-    }>
-    colorPairings: Array<{ primary: string; secondary: string; accent: string }>
-    professionalTips: string[]
-  }
+  skinAnalysis?: SkinToneAnalysis
+  geminiResponse?: GeminiResponse
+  type: "text" | "analysis" | "recommendation" | "system"
 }
 
 export default function StyleScriptChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      role: "assistant",
+      role: "system",
       content:
-        "Hello! I'm your AI style assistant. I can analyze your skin tone, suggest colors that complement you, and provide personalized style recommendations. Upload a photo to get started, or ask me any style-related questions!",
+        "Welcome to StyleScript! I'm your AI style consultant powered by advanced image analysis and Gemini AI. Upload a photo of yourself to get started with personalized style recommendations, or ask me any fashion-related questions!",
       timestamp: new Date(),
-      type: "welcome",
+      type: "system",
     },
   ])
   const [inputMessage, setInputMessage] = useState("")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [currentAnalysis, setCurrentAnalysis] = useState<SkinToneAnalysis | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -95,87 +99,99 @@ export default function StyleScriptChat() {
   const triggerCameraInput = () => cameraInputRef.current?.click()
   const removeImage = () => setImagePreview(null)
 
-  const generateStyleAnalysis = (): StyleAnalysis => {
-    return {
-      skinTone: {
-        category: "Medium-Deep",
-        undertone: "Warm Golden",
-        hex: "#C8956D",
-        confidence: 94,
-        description:
-          "Your skin has beautiful warm golden undertones with medium-deep richness that creates a naturally radiant complexion.",
-      },
-      colorAnalysis: {
-        dominantColors: [
-          { name: "Deep Navy", hex: "#1E3A5F", percentage: 32 },
-          { name: "Warm Ivory", hex: "#F8F6F0", percentage: 28 },
-          { name: "Terracotta", hex: "#C65D07", percentage: 22 },
-          { name: "Forest Green", hex: "#2D5016", percentage: 18 },
-        ],
-        seasonalType: "Deep Autumn",
-        colorHarmony: "Warm & Rich",
-        recommendations: [
-          "Rich, saturated colors enhance your natural warmth",
-          "Earth tones and jewel tones are your power colors",
-          "Avoid cool pastels and icy undertones",
-          "Gold metallics complement your undertones perfectly",
-        ],
-      },
-      styleRecommendations: {
-        personalityProfile:
-          "Your color choices suggest a confident, sophisticated individual who appreciates timeless elegance with modern touches. You likely gravitate toward quality over quantity and prefer versatile pieces that can transition from professional to social settings.",
-        outfitSuggestions: [
-          {
-            occasion: "Professional",
-            items: [
-              "Structured blazer in navy",
-              "Silk blouse in champagne",
-              "Tailored trousers in charcoal",
-              "Gold statement jewelry",
-            ],
-            colors: ["#1E3A5F", "#F8F6F0", "#2F2F2F", "#D4AF37"],
-            reasoning: "These pieces create authority while honoring your warm undertones and sophisticated aesthetic.",
-          },
-          {
-            occasion: "Casual",
-            items: ["Cashmere sweater in camel", "Dark wash denim", "Cognac leather boots", "Autumn-inspired scarf"],
-            colors: ["#C19A6B", "#2F4F4F", "#8B4513", "#CD853F"],
-            reasoning:
-              "Elevated casual pieces that maintain your polished look while feeling comfortable and authentic.",
-          },
-          {
-            occasion: "Evening",
-            items: ["Midi dress in emerald", "Bronze metallic heels", "Statement earrings", "Clutch in nude"],
-            colors: ["#50C878", "#CD7F32", "#D4AF37", "#F5DEB3"],
-            reasoning:
-              "These choices create stunning visual impact while complementing your natural coloring beautifully.",
-          },
-        ],
-        colorPairings: [
-          { primary: "#1E3A5F", secondary: "#C8956D", accent: "#D4AF37" },
-          { primary: "#2D5016", secondary: "#F8F6F0", accent: "#C65D07" },
-          { primary: "#8B4513", secondary: "#F5DEB3", accent: "#CD853F" },
-        ],
-        professionalTips: [
-          "Invest in quality basics in your core colors - they'll serve as the foundation for countless outfits",
-          "When shopping, hold items near your face to see how they interact with your skin tone",
-          "Your warm undertones mean gold jewelry will always be more flattering than silver",
-          "Consider warm-toned makeup palettes with bronze, copper, and warm brown shades",
-          "For hair color, warm browns, auburn highlights, or golden tones will enhance your natural beauty",
-        ],
-      },
+  // Simulated Python model for skin tone analysis
+  const simulatePythonAnalysis = async (imageData: string): Promise<SkinToneAnalysis> => {
+    // Simulate processing time
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // Mock analysis results
+    const mockAnalysis: SkinToneAnalysis = {
+      category: "Medium-Deep",
+      undertone: "Warm Golden",
+      hex: "#C8956D",
+      confidence: 94,
+      description:
+        "Your skin has beautiful warm golden undertones with medium-deep richness. This creates a naturally radiant complexion that works beautifully with earth tones and jewel colors.",
+      suggestedColors: [
+        { name: "Deep Navy", hex: "#1E3A5F", category: "primary", suitability: 95 },
+        { name: "Warm Ivory", hex: "#F8F6F0", category: "primary", suitability: 92 },
+        { name: "Terracotta", hex: "#C65D07", category: "secondary", suitability: 98 },
+        { name: "Forest Green", hex: "#2D5016", category: "secondary", suitability: 89 },
+        { name: "Golden Yellow", hex: "#FFD700", category: "accent", suitability: 87 },
+        { name: "Burgundy", hex: "#800020", category: "accent", suitability: 91 },
+        { name: "Camel", hex: "#C19A6B", category: "secondary", suitability: 94 },
+        { name: "Rust Orange", hex: "#B7410E", category: "accent", suitability: 88 },
+      ],
     }
+
+    return mockAnalysis
   }
 
-  const generateConversationResponse = (query: string): string => {
-    const responses = [
-      "Based on your warm undertones, I'd recommend incorporating more earth tones and jewel colors into your wardrobe. Colors like terracotta, olive green, and deep burgundy would look stunning on you.",
-      "For professional settings, try pairing a structured navy blazer with a cream silk blouse. The contrast will enhance your natural coloring while maintaining a sophisticated look.",
-      "When choosing accessories, gold-toned jewelry will complement your warm undertones beautifully. Look for pieces with amber, topaz, or citrine stones for an especially harmonious look.",
-      "Your skin tone would be enhanced by makeup in warm, golden hues. Consider bronze eyeshadows, peach or terracotta blushes, and warm-toned lipsticks in brick red or copper.",
-      "For casual outfits, try combining dark wash jeans with sweaters in camel, rust, or forest green. These colors will enhance your natural warmth while keeping your look effortlessly stylish.",
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+  // Simulated Gemini API call
+  const simulateGeminiAPI = async (skinAnalysis: SkinToneAnalysis, userInput: string): Promise<GeminiResponse> => {
+    // Simulate API processing time
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    // Mock Gemini response based on skin analysis and user input
+    const mockResponse: GeminiResponse = {
+      styleRecommendations: `Based on your ${skinAnalysis.category.toLowerCase()} skin tone with ${skinAnalysis.undertone.toLowerCase()} undertones, you have a stunning natural warmth that's perfectly suited for rich, saturated colors. Your skin tone falls into the "Deep Autumn" color palette, which means you'll look absolutely radiant in earth tones, jewel colors, and warm metallics. ${userInput
+        ? `Considering your specific request about "${userInput}", I've tailored these recommendations to match your preferences.`
+        : ""
+        }`,
+      outfitSuggestions: [
+        {
+          occasion: "Professional/Business",
+          description:
+            "Create a powerful, sophisticated look that commands respect while honoring your warm undertones.",
+          items: [
+            "Structured blazer in deep navy or charcoal",
+            "Silk blouse in warm ivory or champagne",
+            "Tailored trousers in rich brown or navy",
+            "Gold-toned accessories and jewelry",
+            "Leather pumps in cognac or black",
+          ],
+          colorCombinations: ["#1E3A5F + #F8F6F0 + #FFD700", "#2F2F2F + #C19A6B + #800020"],
+        },
+        {
+          occasion: "Casual/Weekend",
+          description: "Effortless elegance that feels comfortable while maintaining your polished aesthetic.",
+          items: [
+            "Cashmere sweater in camel, rust, or forest green",
+            "Dark wash jeans with warm undertones",
+            "Cognac leather boots or sneakers",
+            "Scarf in autumn-inspired prints",
+            "Crossbody bag in warm brown leather",
+          ],
+          colorCombinations: ["#C19A6B + #2F4F4F + #B7410E", "#2D5016 + #F8F6F0 + #FFD700"],
+        },
+        {
+          occasion: "Evening/Special Events",
+          description: "Show-stopping looks that enhance your natural radiance for memorable occasions.",
+          items: [
+            "Midi or maxi dress in emerald, burgundy, or terracotta",
+            "Metallic heels in gold, bronze, or copper",
+            "Statement jewelry with warm-toned stones",
+            "Clutch in nude, gold, or matching dress color",
+            "Wrap or shawl in complementary warm tone",
+          ],
+          colorCombinations: ["#800020 + #FFD700 + #C8956D", "#2D5016 + #C65D07 + #F8F6F0"],
+        },
+      ],
+      personalizedTips: [
+        "Your warm golden undertones mean gold jewelry will always be more flattering than silver - invest in quality gold pieces that you can mix and match.",
+        "When shopping, hold items near your face in natural light to see how they interact with your skin tone - you'll immediately notice which colors make you glow.",
+        "For makeup, choose warm-toned foundations with golden or yellow undertones, and opt for eyeshadows in bronze, copper, and warm brown shades.",
+        "Your hair color should complement your warm undertones - consider warm browns, auburn highlights, or golden blonde tones rather than ash or cool colors.",
+        "Build your wardrobe around a core palette of navy, warm ivory, camel, and forest green - these will serve as the foundation for countless outfit combinations.",
+        "Don't be afraid of bold colors! Your skin tone can handle rich, saturated hues that might overwhelm cooler undertones.",
+      ],
+      seasonalAdvice:
+        "As someone with Deep Autumn coloring, you're perfectly aligned with fall fashion trends. Embrace the season's rich color palette - think burnt orange, deep burgundy, golden yellow, and forest green. Layer different textures like wool, cashmere, and leather in your color palette for visual interest. In spring and summer, look for warmer versions of lighter colors rather than cool pastels.",
+      shoppingGuide:
+        "When building your wardrobe, prioritize quality over quantity. Invest in well-made pieces in your core colors that can be mixed and matched. Look for natural fabrics like wool, silk, and cotton in rich, saturated colors. Avoid cool-toned colors like icy blue, pure white, or silver - instead, opt for warm whites, navy instead of royal blue, and gold instead of silver accessories.",
+    }
+
+    return mockResponse
   }
 
   const handleSendMessage = async () => {
@@ -185,46 +201,104 @@ export default function StyleScriptChat() {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputMessage,
+      content: inputMessage || "Please analyze my photo and provide style recommendations.",
       timestamp: new Date(),
       image: imagePreview || undefined,
+      type: imagePreview ? "analysis" : "text",
     }
 
     setMessages((prev) => [...prev, userMessage])
     setInputMessage("")
     setImagePreview(null)
-    setIsLoading(true)
+    setIsAnalyzing(true)
 
-    // Simulate AI processing time
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      if (userMessage.image) {
+        // Step 1: Python model analysis
+        const skinAnalysis = await simulatePythonAnalysis(userMessage.image)
+        setCurrentAnalysis(skinAnalysis)
 
-    // Generate AI response
-    if (userMessage.image) {
-      // Image analysis response
-      const analysis = generateStyleAnalysis()
-      const aiResponse: Message = {
+        // Add analysis results message
+        const analysisMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `I've analyzed your photo using our advanced skin tone detection model. Here are the results:`,
+          timestamp: new Date(),
+          skinAnalysis,
+          type: "analysis",
+        }
+        setMessages((prev) => [...prev, analysisMessage])
+
+        // Step 2: Gemini API call with analysis results
+        const geminiResponse = await simulateGeminiAPI(skinAnalysis, userMessage.content)
+
+        // Add Gemini response message
+        const geminiMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          role: "assistant",
+          content: "Based on your skin tone analysis, here are my personalized style recommendations:",
+          timestamp: new Date(),
+          geminiResponse,
+          type: "recommendation",
+        }
+        setMessages((prev) => [...prev, geminiMessage])
+      } else {
+        // Regular conversation with context of previous analysis
+        let responseContent = ""
+
+        if (currentAnalysis) {
+          // Use current analysis context for follow-up questions
+          const contextualResponse = await simulateGeminiAPI(currentAnalysis, inputMessage)
+          responseContent = `Based on your ${currentAnalysis.category.toLowerCase()} skin tone with ${currentAnalysis.undertone.toLowerCase()} undertones, here's my advice: ${contextualResponse.styleRecommendations
+            }`
+
+          const contextualMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: responseContent,
+            timestamp: new Date(),
+            geminiResponse: contextualResponse,
+            type: "recommendation",
+          }
+          setMessages((prev) => [...prev, contextualMessage])
+        } else {
+          // General style advice without analysis
+          responseContent = generateGeneralStyleAdvice(inputMessage)
+
+          const generalMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: responseContent,
+            timestamp: new Date(),
+            type: "text",
+          }
+          setMessages((prev) => [...prev, generalMessage])
+        }
+      }
+    } catch (error) {
+      console.error("Error processing request:", error)
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content:
-          "I've analyzed your photo and created a comprehensive style profile for you! Based on your skin tone and features, I've identified your color palette and created personalized recommendations. Explore the detailed analysis below:",
+        content: "I apologize, but I encountered an error processing your request. Please try again.",
         timestamp: new Date(),
-        analysis,
-        type: "analysis",
+        type: "text",
       }
-      setMessages((prev) => [...prev, aiResponse])
-    } else {
-      // Conversation response
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: generateConversationResponse(inputMessage),
-        timestamp: new Date(),
-        type: "conversation",
-      }
-      setMessages((prev) => [...prev, aiResponse])
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsAnalyzing(false)
     }
+  }
 
-    setIsLoading(false)
+  const generateGeneralStyleAdvice = (query: string): string => {
+    const responses = [
+      "Great question! When building a versatile wardrobe, focus on quality basics in neutral colors that can be mixed and matched. Consider your lifestyle and invest in pieces that work for multiple occasions.",
+      "Color coordination is key to looking polished. Start with a base color and add one or two complementary colors. Neutrals like navy, black, white, and beige are great foundations.",
+      "For professional settings, opt for well-fitted pieces in classic silhouettes. A good blazer, quality trousers, and comfortable yet stylish shoes are essential investments.",
+      "Accessorizing can transform any outfit. A statement necklace, quality handbag, or stylish scarf can elevate even the simplest look.",
+      "When shopping, consider your body type and personal style preferences. What matters most is that you feel confident and comfortable in what you wear.",
+    ]
+    return responses[Math.floor(Math.random() * responses.length)]
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -237,208 +311,202 @@ export default function StyleScriptChat() {
   const LoadingMessage = () => (
     <div className="flex items-start space-x-3">
       <Avatar className="h-8 w-8">
-        <AvatarImage src="/placeholder.svg" />
-        <AvatarFallback className="bg-blue-100 text-white">SS</AvatarFallback>
+        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-pink-600 text-white">
+          <Bot className="h-4 w-4" />
+        </AvatarFallback>
       </Avatar>
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm max-w-xs">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm max-w-md">
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
           </div>
-          <span className="text-sm text-slate-500">Analyzing your style...</span>
+          <span className="text-sm text-slate-600">
+            {imagePreview ? "Analyzing your photo..." : "Generating recommendations..."}
+          </span>
         </div>
       </div>
     </div>
   )
 
-  const StyleAnalysisCard = ({ analysis }: { analysis: StyleAnalysis }) => (
-    <Card className="mt-3 border-slate-200 shadow-lg">
+  const SkinAnalysisCard = ({ analysis }: { analysis: SkinToneAnalysis }) => (
+    <Card className="mt-3 border-blue-200 shadow-lg">
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-5 w-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Your Style Analysis</h3>
+          <Palette className="h-5 w-5 text-blue-600" />
+          <h3 className="text-lg font-semibold text-slate-900">Skin Tone Analysis</h3>
+          <Badge variant="secondary" className="bg-green-50 text-green-700">
+            {analysis.confidence}% Confidence
+          </Badge>
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="colors">Colors</TabsTrigger>
-            <TabsTrigger value="outfits">Outfits</TabsTrigger>
-            <TabsTrigger value="tips">Tips</TabsTrigger>
-          </TabsList>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div
+                className="w-12 h-12 rounded-full border-4 border-white shadow-lg"
+                style={{ backgroundColor: analysis.hex }}
+              />
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    {analysis.category}
+                  </Badge>
+                  <Badge variant="outline" className="border-blue-200">
+                    {analysis.undertone}
+                  </Badge>
+                </div>
+                <p className="text-sm text-slate-600 font-mono">{analysis.hex}</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-700 leading-relaxed">{analysis.description}</p>
+          </div>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                    <Palette className="h-4 w-4" />
-                    Skin Tone Analysis
-                  </h4>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-md"
-                      style={{ backgroundColor: analysis.skinTone.hex }}
-                    />
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
-                          {analysis.skinTone.category}
-                        </Badge>
-                        <Badge variant="outline" className="border-blue-200">
-                          {analysis.skinTone.undertone}
-                        </Badge>
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1">{analysis.skinTone.confidence}% confidence</div>
+          <div className="space-y-4">
+            <h4 className="font-semibold text-slate-900">Recommended Colors</h4>
+            <div className="space-y-3">
+              {analysis.suggestedColors.slice(0, 6).map((color, index) => (
+                <div key={index} className="flex items-center space-x-3">
+                  <div
+                    className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-sm">{color.name}</span>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs ${color.category === "primary"
+                          ? "bg-blue-50 text-blue-700"
+                          : color.category === "secondary"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-orange-50 text-orange-700"
+                          }`}
+                      >
+                        {color.category}
+                      </Badge>
                     </div>
-                  </div>
-                  <p className="text-sm text-slate-700">{analysis.skinTone.description}</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-4">Color Profile</h4>
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-pink-600 text-white">
-                      {analysis.colorAnalysis.seasonalType}
-                    </Badge>
-                    <span className="text-sm text-slate-600">{analysis.colorAnalysis.colorHarmony}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {analysis.colorAnalysis.dominantColors.map((color, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div
-                          className="w-4 h-4 rounded-full border border-slate-200"
-                          style={{ backgroundColor: color.hex }}
-                        />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-medium">{color.name}</span>
-                            <span className="text-slate-500">{color.percentage}%</span>
-                          </div>
-                          <Progress value={color.percentage} className="h-1 mt-1" />
-                        </div>
-                      </div>
-                    ))}
+                    <Progress value={color.suitability} className="h-1 mt-1" />
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          </TabsContent>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 
-          <TabsContent value="colors" className="space-y-6">
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Recommended Color Palettes</h4>
-              <div className="grid grid-cols-3 gap-4">
-                {analysis.styleRecommendations.colorPairings.map((palette, index) => (
-                  <Card key={index} className="border-slate-200">
-                    <CardContent className="p-4">
-                      <h5 className="font-medium text-sm mb-3">Palette {index + 1}</h5>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className="w-6 h-6 rounded-md border border-slate-200"
-                            style={{ backgroundColor: palette.primary }}
-                          />
-                          <span className="text-xs">Primary</span>
+  const GeminiResponseCard = ({ response }: { response: GeminiResponse }) => (
+    <Card className="mt-3 border-green-200 shadow-lg">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-green-600" />
+          <h3 className="text-lg font-semibold text-slate-900">AI Style Recommendations</h3>
+          <Badge variant="secondary" className="bg-green-50 text-green-700">
+            Powered by Gemini
+          </Badge>
+        </div>
+
+        <div className="space-y-6">
+          {/* Style Recommendations */}
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Personal Style Analysis</h4>
+            <p className="text-sm text-slate-700 leading-relaxed">{response.styleRecommendations}</p>
+          </div>
+
+          <Separator />
+
+          {/* Outfit Suggestions */}
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-4">Outfit Suggestions</h4>
+            <div className="space-y-4">
+              {response.outfitSuggestions.map((outfit, index) => (
+                <Card key={index} className="border-slate-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="border-green-200 text-green-700">
+                        {outfit.occasion}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-slate-600 mb-3 italic">{outfit.description}</p>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">Key Pieces:</h5>
+                        <ul className="space-y-1">
+                          {outfit.items.map((item, itemIndex) => (
+                            <li key={itemIndex} className="flex items-center space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">Color Combinations:</h5>
+                        <div className="space-y-2">
+                          {outfit.colorCombinations.map((combo, comboIndex) => (
+                            <div key={comboIndex} className="flex items-center space-x-2">
+                              {combo.split(" + ").map((color, colorIndex) => (
+                                <div key={colorIndex} className="flex items-center space-x-1">
+                                  <div
+                                    className="w-4 h-4 rounded-full border border-slate-300"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                  {colorIndex < combo.split(" + ").length - 1 && (
+                                    <span className="text-xs text-slate-400">+</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className="w-6 h-6 rounded-md border border-slate-200"
-                            style={{ backgroundColor: palette.secondary }}
-                          />
-                          <span className="text-xs">Secondary</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className="w-6 h-6 rounded-md border border-slate-200"
-                            style={{ backgroundColor: palette.accent }}
-                          />
-                          <span className="text-xs">Accent</span>
-                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+          </div>
 
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-3">Color Guidelines</h4>
-              <div className="grid md:grid-cols-2 gap-3">
-                {analysis.colorAnalysis.recommendations.map((rec, index) => (
-                  <div key={index} className="flex items-start space-x-2 p-3 bg-slate-50 rounded-lg">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2" />
-                    <p className="text-sm text-slate-700">{rec}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
+          <Separator />
 
-          <TabsContent value="outfits" className="space-y-6">
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Outfit Recommendations</h4>
-              <div className="space-y-6">
-                {analysis.styleRecommendations.outfitSuggestions.map((outfit, index) => (
-                  <Card key={index} className="border-slate-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        {outfit.occasion === "Professional" && <Shirt className="h-4 w-4 text-slate-600" />}
-                        {outfit.occasion === "Casual" && <TrendingUp className="h-4 w-4 text-slate-600" />}
-                        {outfit.occasion === "Evening" && <Crown className="h-4 w-4 text-slate-600" />}
-                        <h5 className="font-semibold text-slate-900">{outfit.occasion}</h5>
-                      </div>
-                      <p className="text-sm text-slate-600 mb-3 italic">{outfit.reasoning}</p>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {outfit.items.map((item, itemIndex) => (
-                          <div key={itemIndex} className="flex items-center space-x-2 p-2 bg-slate-50 rounded-md">
-                            <div className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
-                            <span className="text-sm text-slate-700">{item}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        {outfit.colors.map((color, colorIndex) => (
-                          <div
-                            key={colorIndex}
-                            className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                            style={{ backgroundColor: color }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+          {/* Personalized Tips */}
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-3">Personalized Tips</h4>
+            <div className="grid gap-3">
+              {response.personalizedTips.map((tip, index) => (
+                <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                  <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                  <p className="text-sm text-slate-700">{tip}</p>
+                </div>
+              ))}
             </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="tips" className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Professional Styling Tips</h4>
-              <div className="space-y-3">
-                {analysis.styleRecommendations.professionalTips.map((tip, index) => (
-                  <Card key={index} className="border-l-4 border-l-blue-600 border-t-0 border-r-0 border-b-0">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-slate-700">{tip}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <Separator />
+
+          {/* Seasonal Advice */}
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Seasonal Styling</h4>
+            <p className="text-sm text-slate-700 leading-relaxed">{response.seasonalAdvice}</p>
+          </div>
+
+          <Separator />
+
+          {/* Shopping Guide */}
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Shopping Guide</h4>
+            <p className="text-sm text-slate-700 leading-relaxed">{response.shoppingGuide}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Header */}
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex items-center space-x-3">
@@ -456,26 +524,40 @@ export default function StyleScriptChat() {
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start space-x-3 ${message.role === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
+              className={`flex items-start space-x-3 ${message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
+                }`}
             >
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarImage src="/placeholder.svg" />
                 <AvatarFallback
                   className={
                     message.role === "user"
                       ? "bg-slate-900 text-white"
-                      : "bg-blue-100 text-black"
+                      : message.role === "system"
+                        ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+                        : "bg-gradient-to-r from-blue-600 to-pink-600 text-white"
                   }
                 >
-                  {message.role === "user" ? "U" : "SS"}
+                  {message.role === "user" ? (
+                    <User className="h-4 w-4" />
+                  ) : message.role === "system" ? (
+                    <Sparkles className="h-4 w-4" />
+                  ) : (
+                    <Bot className="h-4 w-4" />
+                  )}
                 </AvatarFallback>
               </Avatar>
 
               <div
-                className={`flex flex-col space-y-2 max-w-[80%] ${message.role === "user" ? "items-end" : "items-start"}`}
+                className={`flex flex-col space-y-2 max-w-[85%] ${message.role === "user" ? "items-end" : "items-start"
+                  }`}
               >
                 <div
-                  className={`rounded-2xl px-4 py-3 ${message.role === "user" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 shadow-sm"
+                  className={`rounded-2xl px-4 py-3 ${message.role === "user"
+                    ? "bg-slate-900 text-white"
+                    : message.role === "system"
+                      ? "bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 text-blue-900"
+                      : "bg-white border border-slate-200 shadow-sm"
                     }`}
                 >
                   {message.image && (
@@ -487,25 +569,41 @@ export default function StyleScriptChat() {
                       />
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </div>
 
-                {message.analysis && <StyleAnalysisCard analysis={message.analysis} />}
+                {/* Skin Analysis Results */}
+                {message.skinAnalysis && <SkinAnalysisCard analysis={message.skinAnalysis} />}
 
-                <span className="text-xs text-slate-500">
-                  {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+                {/* Gemini Response */}
+                {message.geminiResponse && <GeminiResponseCard response={message.geminiResponse} />}
+
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-slate-500">
+                    {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                  {message.type === "analysis" && (
+                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">
+                      Python Analysis
+                    </Badge>
+                  )}
+                  {message.type === "recommendation" && (
+                    <Badge variant="secondary" className="text-xs bg-green-50 text-green-700">
+                      Gemini AI
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           ))}
 
-          {isLoading && <LoadingMessage />}
+          {isAnalyzing && <LoadingMessage />}
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t border-slate-200 bg-white px-6 py-4 sticky bottom-0">
+      <div className="border-t border-slate-200 bg-white/80 backdrop-blur-sm px-6 py-4">
         <div className="max-w-6xl mx-auto">
           <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
           <input
@@ -519,15 +617,17 @@ export default function StyleScriptChat() {
 
           {/* Image Preview */}
           {imagePreview && (
-            <div className="mb-3 flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="h-16 w-16 rounded-lg overflow-hidden border border-slate-300">
+            <div className="mb-3 flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="h-16 w-16 rounded-lg overflow-hidden border border-blue-300">
                 <img src={imagePreview || "/placeholder.svg"} alt="Preview" className="h-full w-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900">Image ready for analysis</p>
-                <p className="text-xs text-slate-500">Send your message to receive style recommendations</p>
+                <p className="text-sm font-medium text-blue-900">Image ready for analysis</p>
+                <p className="text-xs text-blue-700">
+                  Our Python model will analyze your skin tone and Gemini AI will provide personalized recommendations
+                </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={removeImage} className="h-8 w-8 text-slate-500">
+              <Button variant="ghost" size="icon" onClick={removeImage} className="h-8 w-8 text-blue-600">
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -539,9 +639,13 @@ export default function StyleScriptChat() {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about your style, upload a photo for analysis, or request outfit recommendations..."
-              className="min-h-[80px] pr-24 resize-none border-slate-200 focus:border-blue-400 focus:ring-blue-400"
-              disabled={isLoading}
+              placeholder={
+                currentAnalysis
+                  ? "Ask follow-up questions about your style, request specific outfit ideas, or upload a new photo..."
+                  : "Upload a photo for skin tone analysis, or ask me any style-related questions..."
+              }
+              className="min-h-[60px] pr-24 resize-none border-slate-200 focus:border-blue-400 focus:ring-blue-400"
+              disabled={isAnalyzing}
             />
             <div className="absolute right-2 bottom-2 flex items-center space-x-1">
               <Button
@@ -550,7 +654,8 @@ export default function StyleScriptChat() {
                 size="icon"
                 onClick={triggerCameraInput}
                 className="h-8 w-8 text-slate-500 hover:text-blue-600"
-                disabled={isLoading}
+                disabled={isAnalyzing}
+                title="Take photo"
               >
                 <Camera className="h-4 w-4" />
               </Button>
@@ -560,21 +665,37 @@ export default function StyleScriptChat() {
                 size="icon"
                 onClick={triggerFileInput}
                 className="h-8 w-8 text-slate-500 hover:text-blue-600"
-                disabled={isLoading}
+                disabled={isAnalyzing}
+                title="Upload image"
               >
                 <Upload className="h-4 w-4" />
               </Button>
               <Button
                 type="button"
                 onClick={handleSendMessage}
-                disabled={(!inputMessage.trim() && !imagePreview) || isLoading}
-                className="h-8 w-8 bg-black "
+                disabled={(!inputMessage.trim() && !imagePreview) || isAnalyzing}
+                className="h-8 w-8 bg-black"
                 size="icon"
+                title="Send message"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
+
+          {/* Context Indicator */}
+          {currentAnalysis && (
+            <div className="mt-2 flex items-center space-x-2 text-xs text-slate-500">
+              <div
+                className="w-3 h-3 rounded-full border border-white shadow-sm"
+                style={{ backgroundColor: currentAnalysis.hex }}
+              />
+              <span>
+                Current analysis: {currentAnalysis.category} skin with {currentAnalysis.undertone.toLowerCase()}{" "}
+                undertones
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>
