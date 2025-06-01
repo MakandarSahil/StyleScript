@@ -12,13 +12,14 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
+import { ModelLoader, ModelErrorBoundary } from "@/components/ModelLoader"
 
 // Clothing data (same as catalog)
 const clothes = [
   {
     id: "oxford-shirt",
     name: "Classic Oxford Shirt",
-    model: "/assets/models/shirt.glb",
+    model: "/src/assets/models/shirt.glb",
     price: 89.99,
     rating: 4.5,
     tags: ["casual", "formal", "tops"],
@@ -30,7 +31,7 @@ const clothes = [
   {
     id: "silk-kurta",
     name: "Traditional Silk Kurta",
-    model: "/assets/models/shirt.glb",
+    model: "/src/assets/models/shirt2.glb",
     price: 129.99,
     rating: 4.8,
     tags: ["ethnic", "formal", "tops"],
@@ -42,7 +43,7 @@ const clothes = [
   {
     id: "chino-pants",
     name: "Slim Fit Chino Pants",
-    model: "/assets/models/shirt.glb",
+    model: "/assets/3d/duck.glb",
     price: 69.99,
     rating: 4.2,
     tags: ["casual", "formal", "bottoms"],
@@ -54,7 +55,7 @@ const clothes = [
   {
     id: "denim-jacket",
     name: "Premium Denim Jacket",
-    model: "/assets/models/shirt.glb",
+    model: "/assets/3d/duck.glb",
     price: 149.99,
     rating: 4.7,
     tags: ["casual", "outerwear"],
@@ -66,7 +67,7 @@ const clothes = [
   {
     id: "wool-sweater",
     name: "Merino Wool Sweater",
-    model: "/assets/models/shirt.glb",
+    model: "/assets/3d/duck.glb",
     price: 119.99,
     rating: 4.4,
     tags: ["casual", "winter", "tops"],
@@ -78,7 +79,7 @@ const clothes = [
   {
     id: "graphic-tee",
     name: "Premium Graphic T-Shirt",
-    model: "/assets/models/shirt.glb",
+    model: "/src/assets/models/t-shirt.glb",
     price: 49.99,
     rating: 4.3,
     tags: ["casual", "tops"],
@@ -104,7 +105,7 @@ function ClothingModel({ modelPath, color, scale = 1.2 }: { modelPath: string; c
 // 3D Viewer Component
 function ClothViewer({ modelPath, color }: { modelPath: string; color: string }) {
   return (
-    <Canvas camera={{ position: [0, 0, 4], fov: 50 }}>
+    <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
       <Suspense
         fallback={
           <Html center>
@@ -116,10 +117,21 @@ function ClothViewer({ modelPath, color }: { modelPath: string; color: string })
         }
       >
         <Environment preset="studio" />
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <ClothingModel modelPath={modelPath} color={color} />
-        <OrbitControls enablePan={false} enableZoom={true} maxDistance={6} minDistance={2} />
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[10, 10, 5]} intensity={1.5} />
+        <spotLight position={[-10, 10, 5]} intensity={0.5} />
+        <ModelErrorBoundary>
+          <ModelLoader modelPath={modelPath} color={color} scale={3.2} />
+        </ModelErrorBoundary>
+        <OrbitControls
+          enablePan={false}
+          enableZoom={true}
+          maxDistance={8}
+          minDistance={3}
+          enableDamping={true}
+          dampingFactor={0.05}
+          autoRotate={false}
+        />
       </Suspense>
     </Canvas>
   )
@@ -226,7 +238,7 @@ export default function CustomizePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 3D Viewer */}
           <div className="relative">
-            <Card className="overflow-hidden h-[600px]">
+            <Card className="overflow-hidden h-[700px]">
               <CardContent className="p-0 h-full bg-gradient-to-br from-gray-50 to-gray-100">
                 <ClothViewer modelPath={item.model} color={adjustedColor} />
 
@@ -318,8 +330,8 @@ export default function CustomizePage() {
                           <button
                             key={color}
                             className={`p-3 rounded-lg border-2 transition-all ${selectedColor === color
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-200 hover:border-gray-300"
                               }`}
                             onClick={() => handleColorSelect(color)}
                           >

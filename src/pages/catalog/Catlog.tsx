@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 import { Search, Filter, Heart, Star, X, Palette } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Canvas } from "@react-three/fiber"
-import { OrbitControls, Environment } from "@react-three/drei"
+import { OrbitControls, Environment, Html } from "@react-three/drei"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -16,13 +16,14 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ModelLoader, ModelErrorBoundary } from "@/components/ModelLoader"
 
-// Clothing data with 3D model references
+// Updated clothing data with your actual models
 const clothes = [
   {
     id: "oxford-shirt",
     name: "Classic Oxford Shirt",
-    model: "/assets/3d/duck.glb",
+    model: "/src/assets/models/shirt.glb",
     price: 89.99,
     rating: 4.5,
     tags: ["casual", "formal", "tops"],
@@ -34,7 +35,7 @@ const clothes = [
   {
     id: "silk-kurta",
     name: "Traditional Silk Kurta",
-    model: "/assets/3d/duck.glb",
+    model: "/src/assets/models/shirt2.glb",
     price: 129.99,
     rating: 4.8,
     tags: ["ethnic", "formal", "tops"],
@@ -44,9 +45,21 @@ const clothes = [
     description: "Handwoven silk kurta with intricate embroidery",
   },
   {
+    id: "graphic-tee",
+    name: "Premium Graphic T-Shirt",
+    model: "/src/assets/models/t-shirt.glb",
+    price: 49.99,
+    rating: 4.3,
+    tags: ["casual", "tops"],
+    isNew: true,
+    colors: ["#ffffff", "#2c3e50", "#808080"],
+    colorNames: ["White", "Black", "Gray"],
+    description: "High-quality cotton tee with unique graphics",
+  },
+  {
     id: "chino-pants",
     name: "Slim Fit Chino Pants",
-    model: "/assets/3d/duck.glb",
+    model: "/src/assets/models/shirt.glb", // Reusing shirt model for pants
     price: 69.99,
     rating: 4.2,
     tags: ["casual", "formal", "bottoms"],
@@ -58,7 +71,7 @@ const clothes = [
   {
     id: "denim-jacket",
     name: "Premium Denim Jacket",
-    model: "/assets/3d/duck.glb",
+    model: "/src/assets/models/shirt2.glb", // Reusing shirt2 model for jacket
     price: 149.99,
     rating: 4.7,
     tags: ["casual", "outerwear"],
@@ -70,7 +83,7 @@ const clothes = [
   {
     id: "wool-sweater",
     name: "Merino Wool Sweater",
-    model: "/assets/3d/duck.glb",
+    model: "/src/assets/models/t-shirt.glb", // Reusing t-shirt model for sweater
     price: 119.99,
     rating: 4.4,
     tags: ["casual", "winter", "tops"],
@@ -79,29 +92,17 @@ const clothes = [
     colorNames: ["Gray", "Navy", "Burgundy"],
     description: "Soft merino wool sweater for cold weather",
   },
-  {
-    id: "graphic-tee",
-    name: "Premium Graphic T-Shirt",
-    model: "/assets/3d/duck.glb",
-    price: 49.99,
-    rating: 4.3,
-    tags: ["casual", "tops"],
-    isNew: true,
-    colors: ["#ffffff", "#2c3e50", "#808080"],
-    colorNames: ["White", "Black", "Gray"],
-    description: "High-quality cotton tee with unique graphics",
-  },
 ]
 
-// 3D Model Component
-function ClothingModel({ modelPath, color, scale = 1 }: { modelPath: string; color: string; scale?: number }) {
+// Loading component for 3D models
+function ModelLoadingFallback() {
   return (
-    <group scale={[scale, scale, scale]}>
-      <mesh>
-        <boxGeometry args={[1, 1.5, 0.3]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-    </group>
+    <Html center>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+        <div className="text-sm text-gray-600">Loading 3D model...</div>
+      </div>
+    </Html>
   )
 }
 
@@ -330,14 +331,28 @@ export default function Catalog() {
                     onClick={() => openCustomizer(item)}
                   >
                     <div className="relative flex-1">
-                      <div className="h-64 w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-                        <Canvas camera={{ position: [0, 0, 2], fov: 50 }}>
+                      <div className="h-72 w-full bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                        <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
                           <Suspense fallback={null}>
                             <Environment preset="studio" />
-                            <ambientLight intensity={0.6} />
-                            <directionalLight position={[5, 5, 5]} intensity={0.8} />
-                            <ClothingModel modelPath={item.model} color={item.colors[0]} scale={0.8} />
-                            <OrbitControls enablePan={false} enableZoom={false} autoRotate autoRotateSpeed={2} />
+                            <ambientLight intensity={0.7} />
+                            <directionalLight position={[5, 5, 5]} intensity={1.2} />
+                            <ModelErrorBoundary>
+                              <ModelLoader
+                                modelPath={item.model}
+                                color={item.colors[0]}
+                                scale={1.8}
+                                autoRotate={true}
+                              />
+                            </ModelErrorBoundary>
+                            <OrbitControls
+                              enablePan={false}
+                              enableZoom={false}
+                              autoRotate
+                              autoRotateSpeed={1}
+                              enableDamping={true}
+                              dampingFactor={0.05}
+                            />
                           </Suspense>
                         </Canvas>
                       </div>
