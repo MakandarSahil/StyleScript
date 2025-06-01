@@ -299,6 +299,18 @@ class StyleAnalyzer:
             # Determine face shape (basic estimation)
             face_shape = self.estimate_face_shape(w, h)
             
+            # Convert all numpy types to native Python types
+            def convert_numpy_types(obj):
+                if isinstance(obj, (np.integer, np.floating)):
+                    return int(obj) if isinstance(obj, np.integer) else float(obj)
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif isinstance(obj, dict):
+                    return {k: convert_numpy_types(v) for k, v in obj.items()}
+                elif isinstance(obj, (list, tuple)):
+                    return [convert_numpy_types(x) for x in obj]
+                return obj
+        
             # Compile results
             features = {
                 "skinTone": skin_tone['category'],

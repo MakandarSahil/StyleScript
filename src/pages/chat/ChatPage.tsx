@@ -67,10 +67,16 @@ export default function StyleScriptChat() {
     }
 
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL, {
+      // const apiUrl = `${import.meta.env.VITE_API_URL}/analyze`
+      const apiUrl = `http://43.204.106.151:5000/analyze`
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         body: formData,
       })
+
+      console.log(apiUrl)
+      console.log(response)
 
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`)
