@@ -1,5 +1,8 @@
+"use client"
+
 import { useState, useEffect, Suspense } from "react"
-import { Loader2, Download, Share2, ShoppingCart, ArrowLeft, Heart, Palette } from "lucide-react"
+import { useParams, useLocation, useNavigate } from "react-router-dom"
+import { Loader2, Download, Share2, ShoppingCart, ArrowLeft, Heart, Palette, Undo2 } from "lucide-react"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Environment, Html } from "@react-three/drei"
 import { motion, AnimatePresence } from "framer-motion"
@@ -9,14 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
-import { useNavigate, useParams } from "react-router-dom"
 
 // Clothing data (same as catalog)
 const clothes = [
   {
     id: "oxford-shirt",
     name: "Classic Oxford Shirt",
-    model: "/assets/3d/duck.glb",
+    model: "/assets/models/shirt.glb",
     price: 89.99,
     rating: 4.5,
     tags: ["casual", "formal", "tops"],
@@ -28,7 +30,7 @@ const clothes = [
   {
     id: "silk-kurta",
     name: "Traditional Silk Kurta",
-    model: "/assets/3d/duck.glb",
+    model: "/assets/models/shirt.glb",
     price: 129.99,
     rating: 4.8,
     tags: ["ethnic", "formal", "tops"],
@@ -40,7 +42,7 @@ const clothes = [
   {
     id: "chino-pants",
     name: "Slim Fit Chino Pants",
-    model: "/assets/3d/duck.glb",
+    model: "/assets/models/shirt.glb",
     price: 69.99,
     rating: 4.2,
     tags: ["casual", "formal", "bottoms"],
@@ -52,7 +54,7 @@ const clothes = [
   {
     id: "denim-jacket",
     name: "Premium Denim Jacket",
-    model: "/assets/3d/duck.glb",
+    model: "/assets/models/shirt.glb",
     price: 149.99,
     rating: 4.7,
     tags: ["casual", "outerwear"],
@@ -64,7 +66,7 @@ const clothes = [
   {
     id: "wool-sweater",
     name: "Merino Wool Sweater",
-    model: "/assets/3d/duck.glb",
+    model: "/assets/models/shirt.glb",
     price: 119.99,
     rating: 4.4,
     tags: ["casual", "winter", "tops"],
@@ -76,7 +78,7 @@ const clothes = [
   {
     id: "graphic-tee",
     name: "Premium Graphic T-Shirt",
-    model: "/assets/3d/duck.glb",
+    model: "/assets/models/shirt.glb",
     price: 49.99,
     rating: 4.3,
     tags: ["casual", "tops"],
@@ -135,13 +137,12 @@ function adjustColorBrightness(hex: string, brightness: number): string {
 }
 
 export default function CustomizePage() {
-  const params = useParams()
-  const itemId = params.id as string
-
-  // Find the item from our data
-  const item = clothes.find((c) => c.id === itemId)
-
+  const { itemId } = useParams<{ itemId: string }>()
+  const location = useLocation()
   const navigate = useNavigate()
+
+  // Get item data from navigation state or find by ID
+  const item = location.state?.item || clothes.find((c) => c.id === itemId)
 
   const [selectedColor, setSelectedColor] = useState(item?.colors[0] || "#3B82F6")
   const [brightness, setBrightness] = useState(100)
@@ -150,6 +151,7 @@ export default function CustomizePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [addedToCart, setAddedToCart] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [activeTab, setActiveTab] = useState("customize")
   const [recentColors, setRecentColors] = useState(["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"])
 
   const adjustedColor = adjustColorBrightness(selectedColor, brightness)
@@ -157,7 +159,9 @@ export default function CustomizePage() {
 
   // Redirect if item not found
   useEffect(() => {
-    if (!item) navigate("/")
+    if (!item) {
+      navigate("/catalog")
+    }
   }, [item, navigate])
 
   if (!item) {
@@ -165,7 +169,7 @@ export default function CustomizePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-          <Button onClick={() => navigate("/")}>Back to Catalog</Button>
+          <Button onClick={() => navigate("/catalog")}>Back to Catalog</Button>
         </div>
       </div>
     )
@@ -188,9 +192,14 @@ export default function CustomizePage() {
 
   const handleGenerateDesign = () => {
     setIsLoading(true)
+    setActiveTab("preview")
     setTimeout(() => {
       setIsLoading(false)
     }, 1500)
+  }
+
+  const handleBackToCatalog = () => {
+    navigate("/catalog")
   }
 
   return (
@@ -199,7 +208,7 @@ export default function CustomizePage() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/")} className="mr-4">
+            <Button variant="ghost" size="sm" onClick={handleBackToCatalog} className="mr-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Catalog
             </Button>
@@ -241,25 +250,27 @@ export default function CustomizePage() {
                 </AnimatePresence>
 
                 {/* Action Buttons */}
-                <div className="absolute bottom-4 left-4 flex gap-2">
-                  <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                  <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-white/90 hover:bg-white"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
-                    Save
-                  </Button>
-                </div>
+                {activeTab === "preview" && !isLoading && (
+                  <div className="absolute bottom-4 left-4 flex gap-2">
+                    <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/90 hover:bg-white"
+                      onClick={() => setIsFavorite(!isFavorite)}
+                    >
+                      <Heart className={`w-4 h-4 mr-2 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+                      Save
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -292,10 +303,10 @@ export default function CustomizePage() {
             {/* Customization Tabs */}
             <Card>
               <CardContent className="p-6">
-                <Tabs defaultValue="customize" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="customize">Customize</TabsTrigger>
-                    <TabsTrigger value="order">Order Details</TabsTrigger>
+                    <TabsTrigger value="preview">Preview</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="customize" className="space-y-6 mt-6">
@@ -381,76 +392,112 @@ export default function CustomizePage() {
                     </Button>
                   </TabsContent>
 
-                  <TabsContent value="order" className="space-y-6 mt-6">
-                    {/* Size Selection */}
+                  <TabsContent value="preview" className="space-y-6 mt-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-3">Select Size</h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {availableSizes.map((size) => (
-                          <Button
-                            key={size}
-                            variant={selectedSize === size ? "default" : "outline"}
-                            onClick={() => setSelectedSize(size)}
-                            className="h-12"
-                          >
-                            {size}
+                      <h3 className="text-lg font-semibold mb-2">Your Custom Design</h3>
+                      <p className="text-gray-600 mb-4">
+                        Here's your customized {item.name}. You can order it now or make further adjustments.
+                      </p>
+
+                      <div className="p-4 bg-gray-50 rounded-lg mb-6">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium">Design Details</h4>
+                            <div className="mt-2 space-y-1 text-sm text-gray-600">
+                              <div className="flex items-center">
+                                <span>Color:</span>
+                                <div
+                                  className="ml-2 w-4 h-4 rounded-full"
+                                  style={{ backgroundColor: adjustedColor }}
+                                ></div>
+                                <span className="ml-1 text-xs">{adjustedColor}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Badge variant="outline">3D Model</Badge>
+                        </div>
+                      </div>
+
+                      {/* Size Selection */}
+                      <div className="mb-4">
+                        <h4 className="text-lg font-semibold mb-3">Select Size</h4>
+                        <div className="grid grid-cols-3 gap-2">
+                          {availableSizes.map((size) => (
+                            <Button
+                              key={size}
+                              variant={selectedSize === size ? "default" : "outline"}
+                              onClick={() => setSelectedSize(size)}
+                              className="h-12"
+                            >
+                              {size}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="mb-4">
+                        <h4 className="text-lg font-semibold mb-3">Quantity</h4>
+                        <div className="flex items-center gap-3">
+                          <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+                            -
                           </Button>
-                        ))}
+                          <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
+                          <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
+                            +
+                          </Button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Quantity */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">Quantity</h3>
-                      <div className="flex items-center gap-3">
-                        <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
-                          -
-                        </Button>
-                        <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
-                        <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
-                          +
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Order Summary */}
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-lg font-semibold">Total Price:</span>
+                      {/* Total Price */}
+                      <div className="flex justify-between items-center font-medium mb-6">
+                        <span className="text-lg">Total Price:</span>
                         <span className="text-2xl font-bold text-blue-600">${(item.price * quantity).toFixed(2)}</span>
                       </div>
-
-                      <div className="space-y-3">
-                        <Button
-                          onClick={handleAddToCart}
-                          disabled={isLoading || addedToCart}
-                          className="w-full h-12 bg-green-600 hover:bg-green-700"
-                        >
-                          {addedToCart ? (
-                            <>
-                              <ShoppingCart className="w-4 h-4 mr-2" />
-                              Added to Cart
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingCart className="w-4 h-4 mr-2" />
-                              Add to Cart - ${(item.price * quantity).toFixed(2)}
-                            </>
-                          )}
-                        </Button>
-
-                        {addedToCart && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800"
-                          >
-                            <p className="font-medium">Item added to your cart!</p>
-                            <p className="text-sm">Your custom design has been saved.</p>
-                          </motion.div>
-                        )}
-                      </div>
                     </div>
+
+                    <div className="flex gap-3">
+                      <Button variant="outline" className="flex-1" onClick={() => setActiveTab("customize")}>
+                        <Undo2 className="w-4 h-4 mr-2" />
+                        Edit Design
+                      </Button>
+
+                      <Button
+                        onClick={handleAddToCart}
+                        disabled={isLoading || addedToCart}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                      >
+                        {addedToCart ? (
+                          <>
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            Added to Cart
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            Add to Cart
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {addedToCart && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800"
+                      >
+                        <p className="font-medium">Item added to your cart!</p>
+                        <p className="text-sm">Your custom design has been saved.</p>
+                        <Button
+                          size="sm"
+                          className="mt-2 bg-green-600 hover:bg-green-700"
+                          onClick={() => navigate("/cart")}
+                        >
+                          View Cart
+                        </Button>
+                      </motion.div>
+                    )}
                   </TabsContent>
                 </Tabs>
               </CardContent>

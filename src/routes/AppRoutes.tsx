@@ -4,7 +4,7 @@ import Auth from '@/pages/Auth/Auth';
 import CartPage from '@/pages/Cart/CartPage';
 import Chat from '@/pages/chat/ChatPage';
 import CatalogItem from '@/pages/Item/CatelogItem';
-import Catlog from '@/pages/Main/Catlog';
+import Catlog from '@/pages/catalog/Catlog';
 import HomePage from '@/pages/Main/HomePage';
 import { Suspense } from 'react';
 import {
@@ -15,6 +15,8 @@ import {
   Outlet,
   // Navigate,
 } from 'react-router-dom';
+import Catalog from '@/pages/catalog/Catlog';
+import CustomizePage from '@/pages/catalog/CustomizePage';
 
 const MainLayoutWrapper = () => (
   <MainLayout>
@@ -42,8 +44,8 @@ const router = createBrowserRouter(
         <Route index element={<Chat />} />
       </Route>
 
-      <Route path='/catalog' element={<Catlog />} ></Route>
-      <Route path="/catalog/:itemId" element={<CatalogItem />} />
+      <Route path="/catalog" element={<Catalog />} />
+      <Route path="/customize/:itemId" element={<CustomizePage />} />
 
       {/* cart routes */}
       <Route path="/cart" element={<CartPage />} />
