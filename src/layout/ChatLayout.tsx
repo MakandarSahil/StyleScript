@@ -1,24 +1,16 @@
-import RecentChat from '@/pages/chat/RecentChat';
-import type { ReactNode } from 'react';
+import type React from "react"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { StyleScriptSidebar } from "@/pages/chat/stylescript-sidebar"
 
-interface ChatLayoutProps {
-  children: ReactNode;
-}
-
-const ChatLayout = ({ children }: ChatLayoutProps) => {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <div className='flex h-screen bg-white'>
-      {/* Sidebar - fixed width and full height */}
-      <div className="hidden md:block w-64 bg-white border-r border-gray-200">
-        <RecentChat />
-      </div>
-
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
-        {children}
-      </div>
-    </div>
-  );
+    <SidebarProvider>
+      <StyleScriptSidebar />
+      <main className="flex-1">{children}</main>
+    </SidebarProvider>
+  )
 }
-
-export default ChatLayout;
