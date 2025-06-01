@@ -166,7 +166,7 @@ Please respond with a JSON object containing your advice in this format:
 
     const geminiResponse = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
-        process.env.GEMINI_API_KEY || "AIzaSyBv_-6HxbmCygVXNAsBJ-q5o6c6G6xNMd0"
+        process.env.GEMINI_API_KEY || "AIzaSyC-uNAtn01OdKczqPaCUAnNL0tt-yXoOTM"
       }`,
       {
         contents: [
