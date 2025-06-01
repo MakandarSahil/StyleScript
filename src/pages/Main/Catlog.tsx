@@ -1,3 +1,7 @@
+"use client"
+
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search, Filter, Heart, Star, X } from "lucide-react"
@@ -10,15 +14,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-// import { useModelContext } from "@/context/context/ModelContext"
-import { useModelPath } from "@/context/ModelPathContext"
 
-// Updated clothing data with actual model paths
+// Updated clothing data with fallback handling
 const clothes = [
   {
     id: "shirt",
     name: "Classic Oxford Shirt",
-    model: "/models/shirt_full.glb",
+    model: "/assets/models/shirt2.glb", // Using available model as placeholder
     price: 49.99,
     rating: 4.5,
     tags: ["casual", "formal", "tops"],
@@ -26,9 +28,9 @@ const clothes = [
     colors: ["white", "blue", "black"],
   },
   {
-    id: "kurta",
+    id: "t-shirt",
     name: "Traditional Silk Kurta",
-    model: "/models/kurta.glb",
+    model: "/assets/models/shirt2.glb", // Using available model as placeholder
     price: 59.99,
     rating: 4.8,
     tags: ["ethnic", "formal", "tops"],
@@ -38,7 +40,7 @@ const clothes = [
   {
     id: "pant",
     name: "Slim Fit Chino Pants",
-    model: "/models/slim_pant.glb",
+    model: "/assets/models/shirt2.glb", // Using available model as placeholder
     price: 39.99,
     rating: 4.2,
     tags: ["casual", "formal", "bottoms"],
@@ -48,7 +50,7 @@ const clothes = [
   {
     id: "jacket",
     name: "Premium Denim Jacket",
-    model: "/models/denim_jacket.glb",
+    model: "/assets/models/shirt2.glb", // Using available model as placeholder
     price: 79.99,
     rating: 4.7,
     tags: ["casual", "outerwear"],
@@ -58,7 +60,7 @@ const clothes = [
   {
     id: "sweater",
     name: "Merino Wool Sweater",
-    model: "/models/male_sweater.glb",
+    model: "/assets/models/shirt2.glb", // Using available model as placeholder
     price: 69.99,
     rating: 4.4,
     tags: ["casual", "winter", "tops"],
@@ -68,7 +70,7 @@ const clothes = [
   {
     id: "tshirt",
     name: "Premium Graphic T-Shirt",
-    model: "/models/t_shirt.glb",
+    model: "/assets/models/shirt2.glb", // Using available model as placeholder
     price: 29.99,
     rating: 4.3,
     tags: ["casual", "tops"],
@@ -80,15 +82,13 @@ const clothes = [
 // All available tags from the clothing items
 const allTags = Array.from(new Set(clothes.flatMap((item) => item.tags)))
 
-const Catlog = () => {
+const Catalog = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortOption, setSortOption] = useState("featured")
   const [favorites, setFavorites] = useState<string[]>([])
   const [filteredClothes, setFilteredClothes] = useState(clothes)
-
-
 
   // Apply filters and sorting
   useEffect(() => {
@@ -98,8 +98,7 @@ const Catlog = () => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       result = result.filter(
-        (item) => item.name.toLowerCase().includes(query) ||
-          item.tags.some((tag) => tag.toLowerCase().includes(query)),
+        (item) => item.name.toLowerCase().includes(query) || item.tags.some((tag) => tag.toLowerCase().includes(query)),
       )
     }
 
@@ -173,15 +172,17 @@ const Catlog = () => {
     )
   }
 
-  const { setModelPath } = useModelPath();
-
-  // Navigate directly to customization page
+  // Navigate to customization page with item data
   const navigateToCustomize = (itemId: string) => {
-    const selectedItem = clothes.find(item => item.id === itemId)
-    const modelPath = selectedItem ? selectedItem.model : "/models/shirt_full.glb"
-    console.log("modelPath", modelPath)
-    setModelPath(modelPath)
-    navigate(`/catalog/${itemId}`)
+    const selectedItem = clothes.find((item) => item.id === itemId)
+    if (selectedItem) {
+      // Pass the item data through navigation state
+      navigate(`/catalog/${itemId}`, {
+        state: {
+          item: selectedItem,
+        },
+      })
+    }
   }
 
   return (
@@ -266,10 +267,7 @@ const Catlog = () => {
           {searchQuery && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Search: "{searchQuery}"
-              <button
-                className="ml-1 rounded-full hover:bg-gray-200 p-0.5"
-                onClick={() => setSearchQuery("")}
-              >
+              <button className="ml-1 rounded-full hover:bg-gray-200 p-0.5" onClick={() => setSearchQuery("")}>
                 <X size={14} />
               </button>
             </Badge>
@@ -277,20 +275,12 @@ const Catlog = () => {
           {selectedTags.map((tag) => (
             <Badge key={tag} variant="secondary" className="capitalize flex items-center gap-1">
               {tag}
-              <button
-                className="ml-1 rounded-full hover:bg-gray-200 p-0.5"
-                onClick={() => toggleTag(tag)}
-              >
+              <button className="ml-1 rounded-full hover:bg-gray-200 p-0.5" onClick={() => toggleTag(tag)}>
                 <X size={14} />
               </button>
             </Badge>
           ))}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs h-7"
-            onClick={clearFilters}
-          >
+          <Button variant="ghost" size="sm" className="text-xs h-7" onClick={clearFilters}>
             Clear all
           </Button>
         </div>
@@ -303,10 +293,7 @@ const Catlog = () => {
 
       {/* Clothing Grid */}
       {filteredClothes.length > 0 ? (
-        <motion.div
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence>
             {filteredClothes.map((item) => (
               <motion.div
@@ -357,17 +344,13 @@ const Catlog = () => {
 
                     {/* New badge */}
                     {item.isNew && (
-                      <Badge className="absolute top-2 left-2 bg-emerald-500 hover:bg-emerald-600">
-                        New Arrival
-                      </Badge>
+                      <Badge className="absolute top-2 left-2 bg-emerald-500 hover:bg-emerald-600">New Arrival</Badge>
                     )}
                   </div>
 
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="text-lg font-medium group-hover:text-primary transition-colors">
-                        {item.name}
-                      </h3>
+                      <h3 className="text-lg font-medium group-hover:text-primary transition-colors">{item.name}</h3>
                       <span className="font-semibold">${item.price.toFixed(2)}</span>
                     </div>
 
@@ -403,9 +386,7 @@ const Catlog = () => {
                   </CardContent>
 
                   <CardFooter className="p-4 pt-0">
-                    <Button className="w-full">
-                      Customize Now
-                    </Button>
+                    <Button className="w-full">Customize Now</Button>
                   </CardFooter>
                 </Card>
               </motion.div>
@@ -429,4 +410,4 @@ const Catlog = () => {
   )
 }
 
-export default Catlog
+export default Catalog

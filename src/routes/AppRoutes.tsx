@@ -1,6 +1,7 @@
 import ChatLayout from '@/layout/ChatLayout';
 import MainLayout from '@/layout/MainLayout';
 import Auth from '@/pages/Auth/Auth';
+import CartPage from '@/pages/Cart/CartPage';
 import Chat from '@/pages/chat/ChatPage';
 import CatalogItem from '@/pages/Item/CatelogItem';
 import Catlog from '@/pages/Main/Catlog';
@@ -33,16 +34,19 @@ const router = createBrowserRouter(
       {/* Public main routes */}
       <Route path='/' element={<MainLayoutWrapper />}>
         <Route index element={<HomePage />} />
-        <Route path='/catalog' element={<Catlog />} />
       </Route>
       <Route path='/auth' element={<Auth />} />
-      <Route path="/catalog/:itemId" element={<CatalogItem />} />
 
       {/* chats routes */}
       <Route path='/chats' element={<ChatLayoutWrapper />}>
         <Route index element={<Chat />} />
       </Route>
 
+      <Route path='/catalog' element={<Catlog />} ></Route>
+      <Route path="/catalog/:itemId" element={<CatalogItem />} />
+
+      {/* cart routes */}
+      <Route path="/cart" element={<CartPage />} />
     </>
   )
 )
