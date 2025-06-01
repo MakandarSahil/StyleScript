@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useRef, useEffect } from "react"
 import { Sparkles, Bot } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -69,7 +67,7 @@ export default function StyleScriptChat() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/analyze", {
+      const response = await fetch(import.meta.env.VITE_API_URL, {
         method: "POST",
         body: formData,
       })

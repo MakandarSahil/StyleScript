@@ -15,7 +15,13 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // allow only your frontend origin
+    methods: ["GET", "POST", "PUT", "DELETE"], // allow HTTP methods as needed
+    credentials: true, // if you want to send cookies/auth headers
+  })
+);
 app.use(express.json());
 
 // Configure multer for file uploads
