@@ -37,9 +37,14 @@ function cleanGeminiResponse(text) {
 }
 
 // Enhanced prompt for comprehensive analysis
-function createEnhancedPrompt(extractedFeatures) {
-  return `
-You are a professional style consultant and color analyst. Based on the following detailed analysis of a person's features, provide comprehensive styling advice.
+function createEnhancedPrompt(extractedFeatures, userText = "") {
+  const genderSpecific =
+    extractedFeatures.gender === "male"
+      ? "The person is male, so provide recommendations tailored for men."
+      : "The person is female, so provide recommendations tailored for women.";
+
+  const basePrompt = `
+You are a professional style consultant and color analyst. Based on the following detailed analysis of a person's features, provide comprehensive styling advice. ${genderSpecific}
 
 EXTRACTED FEATURES:
 - Skin Tone: ${extractedFeatures.skinTone} (RGB: ${
@@ -58,7 +63,18 @@ EXTRACTED FEATURES:
 - Facial Features: ${JSON.stringify(extractedFeatures.facialFeatures)}
 - Color Season: ${extractedFeatures.colorSeason}
 - Dominant Colors: ${JSON.stringify(extractedFeatures.dominantColors)}
+`;
 
+  const textPrompt = userText
+    ? `
+USER'S SPECIFIC REQUEST:
+"${userText}"
+
+Please address this request specifically in your response, while still providing the comprehensive analysis.
+`
+    : "";
+
+  const responseFormat = `
 Please provide a comprehensive analysis in the following JSON format:
 
 {
@@ -120,18 +136,112 @@ Please provide a comprehensive analysis in the following JSON format:
     "faceShape": "recommendations based on face shape",
     "bodyType": "general body type recommendations",
     "lifestyle": "recommendations based on inferred lifestyle"
+  },
+  "userRequestResponse": ${
+    userText ? `"detailed response to the user's specific request"` : "null"
   }
 }
 
 Provide detailed, actionable advice that considers all the extracted features holistically.`;
+
+  return basePrompt + textPrompt + responseFormat;
+}
+
+// Handle text-only requests
+async function handleTextOnlyRequest(userText) {
+  try {
+    const prompt = `You are a professional style consultant. The user has asked for advice without providing an image. Please provide helpful fashion/style advice based on their request.
+
+User's request: "${userText}"
+
+Please respond with a JSON object containing your advice in this format:
+{
+  "textResponse": "your detailed response to the user's request",
+  "generalAdvice": {
+    "clothingTips": ["array of general clothing tips"],
+    "colorSuggestions": ["array of color suggestions"],
+    "accessoryRecommendations": ["array of accessory recommendations"]
+  }
+}`;
+
+    const geminiResponse = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
+        process.env.GEMINI_API_KEY || "AIzaSyBv_-6HxbmCygVXNAsBJ-q5o6c6G6xNMd0"
+      }`,
+      {
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2000,
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 30000,
+      }
+    );
+
+    const geminiText = geminiResponse.data.candidates[0].content.parts[0].text;
+    const cleanedText = cleanGeminiResponse(geminiText);
+
+    try {
+      return JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError);
+      return {
+        textResponse: cleanedText,
+        generalAdvice: {
+          clothingTips: [],
+          colorSuggestions: [],
+          accessoryRecommendations: [],
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Error in text-only request:", error);
+    return {
+      error: "Failed to process text request",
+      details: error.message,
+    };
+  }
 }
 
 app.post("/analyze", upload.single("image"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No image file uploaded." });
+  const userText = req.body.text || "";
+  const imageFile = req.file;
+
+  // Handle text-only requests
+  if (!imageFile) {
+    if (!userText) {
+      return res
+        .status(400)
+        .json({ error: "Either image or text input is required." });
+    }
+
+    try {
+      const textResponse = await handleTextOnlyRequest(userText);
+      return res.json({
+        success: true,
+        textAnalysis: textResponse,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: "Text analysis failed",
+        details: error.message,
+      });
+    }
   }
 
-  const imagePath = req.file.path;
+  const imagePath = imageFile.path;
 
   try {
     // Spawn Python process for feature extraction
@@ -170,8 +280,8 @@ app.post("/analyze", upload.single("image"), async (req, res) => {
         const extracted = JSON.parse(result);
         console.log("Extracted features:", extracted);
 
-        // Create enhanced prompt
-        const prompt = createEnhancedPrompt(extracted);
+        // Create enhanced prompt with user text if provided
+        const prompt = createEnhancedPrompt(extracted, userText);
 
         // Call Gemini API
         const geminiResponse = await axios.post(
@@ -228,6 +338,7 @@ app.post("/analyze", upload.single("image"), async (req, res) => {
           success: true,
           extractedFeatures: extracted,
           analysis: geminiJson,
+          userText: userText || null,
           timestamp: new Date().toISOString(),
         });
       } catch (error) {
