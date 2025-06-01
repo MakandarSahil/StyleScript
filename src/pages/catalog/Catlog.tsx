@@ -35,7 +35,7 @@ const clothes = [
   {
     id: "silk-kurta",
     name: "Traditional Silk Kurta",
-    model: "/src/assets/models/shirt2.glb",
+    model: "/src/assets/models/shirt3.glb",
     price: 129.99,
     rating: 4.8,
     tags: ["ethnic", "formal", "tops"],
@@ -59,7 +59,7 @@ const clothes = [
   {
     id: "chino-pants",
     name: "Slim Fit Chino Pants",
-    model: "/src/assets/models/shirt.glb", // Reusing shirt model for pants
+    model: "/src/assets/models/dress.glb", // Reusing shirt model for pants
     price: 69.99,
     rating: 4.2,
     tags: ["casual", "formal", "bottoms"],
@@ -71,7 +71,7 @@ const clothes = [
   {
     id: "denim-jacket",
     name: "Premium Denim Jacket",
-    model: "/src/assets/models/shirt2.glb", // Reusing shirt2 model for jacket
+    model: "/src/assets/models/simple_womens_shirt.glb", // Reusing shirt2 model for jacket
     price: 149.99,
     rating: 4.7,
     tags: ["casual", "outerwear"],
@@ -80,18 +80,18 @@ const clothes = [
     colorNames: ["Blue", "Black", "Washed"],
     description: "Classic denim jacket with modern fit",
   },
-  {
-    id: "wool-sweater",
-    name: "Merino Wool Sweater",
-    model: "/src/assets/models/t-shirt.glb", // Reusing t-shirt model for sweater
-    price: 119.99,
-    rating: 4.4,
-    tags: ["casual", "winter", "tops"],
-    isNew: false,
-    colors: ["#808080", "#1e3a8a", "#800020"],
-    colorNames: ["Gray", "Navy", "Burgundy"],
-    description: "Soft merino wool sweater for cold weather",
-  },
+  // {
+  //   id: "wool-sweater",
+  //   name: "Merino Wool Sweater",
+  //   model: "/src/assets/models/monalisa.glb", // Reusing t-shirt model for sweater
+  //   price: 119.99,
+  //   rating: 4.4,
+  //   tags: ["casual", "winter", "tops"],
+  //   isNew: false,
+  //   colors: ["#808080", "#1e3a8a", "#800020"],
+  //   colorNames: ["Gray", "Navy", "Burgundy"],
+  //   description: "Soft merino wool sweater for cold weather",
+  // },
 ]
 
 // Loading component for 3D models
