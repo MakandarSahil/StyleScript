@@ -14,7 +14,6 @@
 // }
 
 
-// App.tsx
 import React, { useState } from "react";
 import { Upload, Image, Palette, Sparkles, FileImage, Loader2, Check, AlertCircle } from "lucide-react";
 
@@ -28,35 +27,27 @@ function App() {
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
+    const formData = new FormData();
+    formData.append("image", file);
 
-    // Simulate API call for demo purposes
-    setTimeout(() => {
-      const mockResult = {
-        features: {
-          dominantColor: "#4A90E2",
-          brightness: "Medium",
-          contrast: "High",
-          style: "Contemporary",
-          suitableColors: ["#4A90E2", "#E74C3C", "#2ECC71", "#F39C12", "#9B59B6", "#1ABC9C"]
-        },
-        geminiResponse: {
-          styleAnalysis: "This image shows a contemporary aesthetic with strong visual appeal and balanced composition.",
-          colorPalette: {
-            primary: "#4A90E2",
-            secondary: "#E74C3C",
-            accent: "#2ECC71"
-          },
-          recommendations: [
-            "Consider using complementary colors for contrast",
-            "The lighting creates excellent depth",
-            "Color harmony suggests modern design principles"
-          ],
-          confidence: 0.94
-        }
-      };
-      setResult(mockResult);
+    try {
+      const response = await fetch("http://localhost:5000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setResult(data);
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Upload failed. Is the backend running?");
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
