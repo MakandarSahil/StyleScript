@@ -1,4 +1,4 @@
-import { createModel3D } from "../context/ModelContext";
+import { createModel3D } from "../hooks/context/ModelContext";
 
 export const availableModels = [
   createModel3D(

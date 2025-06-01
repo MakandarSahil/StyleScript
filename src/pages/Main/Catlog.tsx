@@ -10,7 +10,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useModelContext } from "@/context/ModelContext"
+// import { useModelContext } from "@/context/context/ModelContext"
 import { useModelPath } from "@/context/ModelPathContext"
 
 // Updated clothing data with actual model paths

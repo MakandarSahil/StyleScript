@@ -9,7 +9,7 @@ import {
 } from "@react-three/drei"
 import ModelLoader from "./ModelLoader"
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib"
-import { useModelPath } from "@/context/ModelPathContext"
+import { useModelPath } from "@/hooks/context/ModelPathContext"
 
 interface Props {
   modelPath: string

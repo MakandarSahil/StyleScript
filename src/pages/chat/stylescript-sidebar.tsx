@@ -1,11 +1,5 @@
 import { useState } from "react"
-import {
-  Plus,
-  Sparkles,
-  Camera,
-  Trash2,
-  MessageSquare,
-} from "lucide-react"
+import { Plus, Sparkles, Camera, Trash2, MessageSquare, Download, Upload, AlertCircle, X } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -23,136 +17,108 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-
-interface ChatSession {
-  id: string
-  title: string
-  timestamp: string
-  preview: string
-  type: "analysis" | "consultation" | "general"
-}
-
-// interface StyleCategory {
-//   id: string
-//   name: string
-//   icon: React.ReactNode
-//   description: string
-//   trending?: boolean
-// }
-
-// interface TrendingLook {
-//   id: string
-//   title: string
-//   category: string
-//   likes: number
-//   image: string
-// }
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useChatStorage } from "../../hooks/use-chat-storage"
+import { StorageStatus } from "./storage-status"
 
 export function StyleScriptSidebar() {
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([
-    {
-      id: "1",
-      title: "Autumn Color Analysis",
-      timestamp: "2 hours ago",
-      preview: "Analyzed warm undertones and suggested earth tones...",
-      type: "analysis",
-    },
-    {
-      id: "2",
-      title: "Professional Wardrobe",
-      timestamp: "1 day ago",
-      preview: "Discussed blazer styles for corporate settings...",
-      type: "consultation",
-    },
-    {
-      id: "3",
-      title: "Evening Wear Styling",
-      timestamp: "3 days ago",
-      preview: "Recommended elegant dress options for gala...",
-      type: "consultation",
-    },
-    {
-      id: "4",
-      title: "Casual Weekend Look",
-      timestamp: "1 week ago",
-      preview: "Suggested comfortable yet stylish combinations...",
-      type: "general",
-    },
-  ])
+  const {
+    chats,
+    currentChatId,
+    createNewChat,
+    deleteChat,
+    switchToChat,
+    clearAllChats,
+    exportChats,
+    importChats,
+    storageWarning,
+    isLoading,
+    isSaving,
+    lastSaved,
+    autoSaveEnabled,
+    toggleAutoSave,
+    manualSave,
+  } = useChatStorage()
+  const [showStorageWarning, setShowStorageWarning] = useState(true)
 
-  // const styleCategories: StyleCategory[] = [
-  //   {
-  //     id: "skin-analysis",
-  //     name: "Skin Tone Analysis",
-  //     icon: <Palette className="h-4 w-4" />,
-  //     description: "Discover your perfect color palette",
-  //     trending: true,
-  //   },
-  //   {
-  //     id: "wardrobe-essentials",
-  //     name: "Wardrobe Essentials",
-  //     icon: <Shirt className="h-4 w-4" />,
-  //     description: "Build your capsule wardrobe",
-  //   },
-  //   {
-  //     id: "seasonal-trends",
-  //     name: "Seasonal Trends",
-  //     icon: <TrendingUp className="h-4 w-4" />,
-  //     description: "Latest fashion trends",
-  //     trending: true,
-  //   },
-  //   {
-  //     id: "luxury-styling",
-  //     name: "Luxury Styling",
-  //     icon: <Crown className="h-4 w-4" />,
-  //     description: "Premium fashion guidance",
-  //   },
-  //   {
-  //     id: "occasion-wear",
-  //     name: "Occasion Wear",
-  //     icon: <Star className="h-4 w-4" />,
-  //     description: "Perfect outfits for every event",
-  //   },
-  // ]
-
-  // const trendingLooks: TrendingLook[] = [
-  //   {
-  //     id: "1",
-  //     title: "Warm Autumn Palette",
-  //     category: "Color Analysis",
-  //     likes: 1247,
-  //     image: "/placeholder.svg?height=60&width=60",
-  //   },
-  //   {
-  //     id: "2",
-  //     title: "Minimalist Chic",
-  //     category: "Capsule Wardrobe",
-  //     likes: 892,
-  //     image: "/placeholder.svg?height=60&width=60",
-  //   },
-  //   {
-  //     id: "3",
-  //     title: "Power Dressing",
-  //     category: "Professional",
-  //     likes: 756,
-  //     image: "/placeholder.svg?height=60&width=60",
-  //   },
-  // ]
+  const fileInputRef = useState<HTMLInputElement | null>(null)
 
   const handleNewChat = () => {
-    const newChat: ChatSession = {
-      id: Date.now().toString(),
-      title: "New Style Consultation",
-      timestamp: "Just now",
-      preview: "",
-      type: "general",
-    }
-    setChatSessions([newChat, ...chatSessions])
+    createNewChat()
   }
 
   const handleDeleteChat = (chatId: string) => {
-    setChatSessions(chatSessions.filter((chat) => chat.id !== chatId))
+    deleteChat(chatId)
+  }
+
+  const handleChatClick = (chatId: string) => {
+    switchToChat(chatId)
+  }
+
+  const handleExportChats = () => {
+    if (exportChats()) {
+      // toast({
+      //   title: "Chats exported",
+      //   description: "Your conversations have been downloaded as a JSON file",
+      // })
+      console.log("export")
+    } else {
+      // toast({
+      //   title: "Export failed",
+      //   description: "There was an error exporting your conversations",
+      //   variant: "destructive",
+      // })
+      console.log("not exported")
+    }
+  }
+
+  const handleImportClick = () => {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = ".json"
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const content = event.target?.result as string
+          if (importChats(content)) {
+            // toast({
+            //   title: "Chats imported",
+            //   description: "Your conversations have been imported successfully",
+            // })
+            console.log(content)
+          } else {
+            // toast({
+            //   title: "Import failed",
+            //   description: "There was an error importing your conversations",
+            //   variant: "destructive",
+            // })
+            console.log("hii")
+          }
+        }
+        reader.readAsText(file)
+      }
+    }
+    input.click()
+  }
+
+  const handleClearAllChats = () => {
+    if (window.confirm("Are you sure you want to delete all chats? This cannot be undone.")) {
+      clearAllChats()
+      // toast({
+      //   title: "All chats cleared",
+      //   description: "All your conversations have been deleted",
+      // })
+      console.log("cleared")
+    }
   }
 
   const getTypeIcon = (type: string) => {
@@ -189,6 +155,22 @@ export function StyleScriptSidebar() {
     }
   }
 
+  const formatTimestamp = (date: Date) => {
+    const now = new Date()
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+
+    if (diffInMinutes < 1) return "Just now"
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) return `${diffInHours}h ago`
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays}d ago`
+
+    return date.toLocaleDateString()
+  }
+
   return (
     <Sidebar className="border-r border-slate-200">
       <SidebarHeader className="border-b border-slate-200">
@@ -201,35 +183,119 @@ export function StyleScriptSidebar() {
             <p className="text-xs text-slate-600">AI Style Assistant</p>
           </div>
         </div>
-        <Button
-          onClick={handleNewChat}
-          className="w-full gap-2 bg-gradient-to-br bg-slate-900"
-        >
+        <Button onClick={handleNewChat} className="w-full gap-2 bg-gradient-to-br bg-slate-900">
           <Plus className="h-4 w-4" />
           New Style Chat
         </Button>
+        <StorageStatus
+          isLoading={isLoading}
+          isSaving={isSaving}
+          lastSaved={lastSaved}
+          autoSaveEnabled={autoSaveEnabled}
+          onToggleAutoSave={toggleAutoSave}
+          onManualSave={manualSave}
+          storageWarning={storageWarning}
+        />
       </SidebarHeader>
 
       <SidebarContent>
+        {storageWarning && showStorageWarning && (
+          <Alert className="mx-2 my-2 bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-xs text-amber-700 flex-1">{storageWarning}</AlertDescription>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 text-amber-600"
+              onClick={() => setShowStorageWarning(false)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Alert>
+        )}
+
         <ScrollArea className="h-[calc(100vh-200px)]">
           {/* Recent Chats */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-slate-500 font-medium">Recent Conversations</SidebarGroupLabel>
+            <div className="flex items-center justify-between px-2">
+              <SidebarGroupLabel className="text-slate-500 font-medium">Recent Conversations</SidebarGroupLabel>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <span className="sr-only">More options</span>
+                    <div className="h-1 w-1 rounded-full bg-current" />
+                    <div className="h-1 w-1 rounded-full bg-current" />
+                    <div className="h-1 w-1 rounded-full bg-current" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleExportChats}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Chats
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleImportClick}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Chats
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleClearAllChats} className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear All Chats
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <SidebarGroupContent>
               <SidebarMenu>
-                {chatSessions.map((chat) => (
+                {chats.map((chat) => (
                   <SidebarMenuItem key={chat.id}>
-                    <SidebarMenuButton asChild className="h-auto p-3 hover:bg-slate-50">
-                      <div className="flex flex-col items-start gap-2 w-full">
+                    <SidebarMenuButton
+                      asChild
+                      className={`h-auto p-3 hover:bg-slate-50 ${currentChatId === chat.id ? "bg-purple-50 border-l-2 border-purple-500" : ""
+                        }`}
+                    >
+                      <div
+                        className="flex flex-col items-start gap-2 w-full cursor-pointer"
+                        onClick={() => handleChatClick(chat.id)}
+                      >
                         <div className="flex items-center gap-2 w-full">
                           {getTypeIcon(chat.type)}
                           <span className="font-medium truncate flex-1 text-sm">{chat.title}</span>
+                          {currentChatId === chat.id && (
+                            <Badge
+                              variant="outline"
+                              className="bg-purple-100 border-purple-300 text-purple-800 text-xs"
+                            >
+                              Active
+                            </Badge>
+                          )}
                         </div>
                         {chat.preview && <p className="text-xs text-slate-500 line-clamp-2 pl-5">{chat.preview}</p>}
                         <div className="flex items-center justify-between w-full pl-5">
-                          <span className="text-xs text-slate-400">{chat.timestamp}</span>
+                          <span className="text-xs text-slate-400">{formatTimestamp(chat.lastUpdated)}</span>
                           {getTypeBadge(chat.type)}
                         </div>
+
+                        {/* Show metadata indicators if available */}
+                        {chat.metadata && (
+                          <div className="flex flex-wrap gap-1 pl-5">
+                            {chat.metadata.skinTone && (
+                              <Badge variant="outline" className="text-xs border-blue-200 text-blue-700">
+                                {chat.metadata.skinTone}
+                              </Badge>
+                            )}
+                            {chat.metadata.colorSeason && (
+                              <Badge variant="outline" className="text-xs border-green-200 text-green-700">
+                                {chat.metadata.colorSeason}
+                              </Badge>
+                            )}
+                            {chat.metadata.hasImageAnalysis && (
+                              <Badge variant="outline" className="text-xs border-purple-200 text-purple-700">
+                                Image Analysis
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </SidebarMenuButton>
                     <DropdownMenu>
@@ -250,114 +316,18 @@ export function StyleScriptSidebar() {
                     </DropdownMenu>
                   </SidebarMenuItem>
                 ))}
+                {chats.length === 0 && (
+                  <div className="p-4 text-center text-slate-500 text-sm">
+                    No conversations yet. Start a new chat to begin!
+                  </div>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-
-          {/* Style Categories */}
-          {/* <SidebarGroup>
-            <SidebarGroupLabel className="text-slate-500 font-medium">Style Categories</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {styleCategories.map((category) => (
-                  <SidebarMenuItem key={category.id}>
-                    <SidebarMenuButton className="hover:bg-slate-50">
-                      <div className="flex items-center gap-3 w-full">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
-                          {category.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm truncate">{category.name}</span>
-                            {category.trending && (
-                              <Badge variant="secondary" className="bg-orange-50 text-orange-700 text-xs">
-                                Trending
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 truncate">{category.description}</p>
-                        </div>
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup> */}
-
-          {/* Trending Looks */}
-          {/* <SidebarGroup>
-            <SidebarGroupLabel className="text-slate-500 font-medium">Trending Looks</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {trendingLooks.map((look) => (
-                  <SidebarMenuItem key={look.id}>
-                    <SidebarMenuButton className="h-auto p-3 hover:bg-slate-50">
-                      <div className="flex items-center gap-3 w-full">
-                        <div className="h-12 w-12 rounded-lg overflow-hidden bg-slate-100">
-                          <img
-                            src={look.image || "/placeholder.svg"}
-                            alt={look.title}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{look.title}</p>
-                          <p className="text-xs text-slate-500">{look.category}</p>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Heart className="h-3 w-3 text-red-500" />
-                            <span className="text-xs text-slate-500">{look.likes.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup> */}
-
-          {/* Brand Promotions */}
-          {/* <SidebarGroup>
-            <SidebarGroupLabel className="text-slate-500 font-medium">Featured</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100 mx-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <ShoppingBag className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium text-sm text-purple-900">Premium Styling</span>
-                </div>
-                <p className="text-xs text-purple-700 mb-3">Get personalized styling sessions with our AI experts</p>
-                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-xs">
-                  Upgrade Now
-                </Button>
-              </div>
-            </SidebarGroupContent>
-          </SidebarGroup> */}
         </ScrollArea>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-slate-200">
-        {/* <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="hover:bg-slate-50">
-              <User className="h-4 w-4" />
-              <span>Profile</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="hover:bg-slate-50">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="hover:bg-slate-50">
-              <HelpCircle className="h-4 w-4" />
-              <span>Help & Support</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu> */}
-
         <div className="flex items-center gap-3 p-2 mt-2">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder.svg" />
@@ -365,7 +335,9 @@ export function StyleScriptSidebar() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-900 truncate">Style Enthusiast</p>
-            <p className="text-xs text-slate-500">Free Plan</p>
+            <p className="text-xs text-slate-500">
+              {chats.length} {chats.length === 1 ? "conversation" : "conversations"}
+            </p>
           </div>
           <Badge variant="outline" className="text-xs border-purple-200 text-blue-700">
             Pro
