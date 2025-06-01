@@ -1225,12 +1225,12 @@ export default function StyleScriptChat() {
               >
                 <div
                   className={`rounded-2xl px-4 py-3 ${message.role === "user"
-                      ? "bg-slate-900 text-white"
-                      : message.role === "system"
-                        ? "bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 text-blue-900"
-                        : message.type === "error"
-                          ? "bg-red-50 border border-red-200 text-red-900"
-                          : "bg-white border border-slate-200 shadow-sm"
+                    ? "bg-slate-900 text-white"
+                    : message.role === "system"
+                      ? "bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 text-blue-900"
+                      : message.type === "error"
+                        ? "bg-red-50 border border-red-200 text-red-900"
+                        : "bg-white border border-slate-200 shadow-sm"
                     }`}
                 >
                   {message.image && (
