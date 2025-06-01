@@ -1,15 +1,34 @@
+"use client"
+
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Send, Camera, Upload, X, Sparkles, Palette, User, Bot, AlertCircle } from "lucide-react"
+import {
+  Send,
+  Camera,
+  Upload,
+  X,
+  Sparkles,
+  User,
+  Bot,
+  AlertCircle,
+  ShoppingBag,
+  Brush,
+  Shirt,
+  SwatchBookIcon as Swatch,
+  Eye,
+  MessageSquare,
+  Lightbulb,
+  Calendar,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface ExtractedFeatures {
   skinTone: string
@@ -211,8 +230,6 @@ export default function StyleScriptChat() {
         body: formData,
       })
 
-      console.log("response:", response)
-
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`)
       }
@@ -309,290 +326,842 @@ export default function StyleScriptChat() {
     </div>
   )
 
-  const ExtractedFeaturesCard = ({ features }: { features: ExtractedFeatures }) => (
-    <Card className="mt-3 border-purple-200 shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Palette className="h-5 w-5 text-purple-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Extracted Features</h3>
-          <Badge variant="secondary" className="bg-purple-50 text-purple-700">
-            Computer Vision
-          </Badge>
-        </div>
+  const TabbedAnalysisCard = ({ response }: { response: APIResponse }) => {
+    // Add safety checks for the response structure
+    if (!response || !response.extractedFeatures) {
+      return (
+        <Card className="mt-3 border-red-200 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              <span>Invalid response data received</span>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div
-                className="w-12 h-12 rounded-full border-4 border-white shadow-lg"
-                style={{ backgroundColor: `rgb(${features.skinToneRGB.join(",")})` }}
-              />
-              <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
-                    {features.skinTone} skin
-                  </Badge>
-                  <Badge variant="outline" className="border-purple-200">
-                    {features.skinUndertone} undertone
-                  </Badge>
-                </div>
-                <p className="text-sm text-slate-600 font-mono">RGB({features.skinToneRGB.join(",")})</p>
-              </div>
+    const { extractedFeatures, analysis } = response
+
+    return (
+      <div className="mt-3 space-y-4">
+        {/* Main Analysis Tabs */}
+        <Card className="border-purple-200 shadow-lg overflow-hidden">
+          <Tabs defaultValue="image-analysis" className="w-full">
+            <div className="border-b border-slate-200 bg-slate-50">
+              <TabsList className="h-auto p-0 bg-transparent w-full flex justify-start overflow-x-auto">
+                <TabsTrigger
+                  value="image-analysis"
+                  className="data-[state=active]:bg-white rounded-none border-r border-slate-200 px-4 py-3 flex items-center gap-1.5"
+                >
+                  <Eye className="h-4 w-4" />
+                  <span>Image Analysis</span>
+                </TabsTrigger>
+                {analysis?.skinAnalysisResults && (
+                  <TabsTrigger
+                    value="color-analysis"
+                    className="data-[state=active]:bg-white rounded-none border-r border-slate-200 px-4 py-3 flex items-center gap-1.5"
+                  >
+                    <Swatch className="h-4 w-4" />
+                    <span>Color Analysis</span>
+                  </TabsTrigger>
+                )}
+                {analysis?.styleRecommendations && (
+                  <TabsTrigger
+                    value="style-guide"
+                    className="data-[state=active]:bg-white rounded-none border-r border-slate-200 px-4 py-3 flex items-center gap-1.5"
+                  >
+                    <Shirt className="h-4 w-4" />
+                    <span>Style Guide</span>
+                  </TabsTrigger>
+                )}
+                {analysis?.personalizedTips && (
+                  <TabsTrigger
+                    value="beauty-tips"
+                    className="data-[state=active]:bg-white rounded-none border-r border-slate-200 px-4 py-3 flex items-center gap-1.5"
+                  >
+                    <Brush className="h-4 w-4" />
+                    <span>Beauty Tips</span>
+                  </TabsTrigger>
+                )}
+                {analysis?.seasonalAdvice && (
+                  <TabsTrigger
+                    value="seasonal"
+                    className="data-[state=active]:bg-white rounded-none border-r border-slate-200 px-4 py-3 flex items-center gap-1.5"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>Seasonal</span>
+                  </TabsTrigger>
+                )}
+                {analysis?.shoppingGuide && (
+                  <TabsTrigger
+                    value="shopping"
+                    className="data-[state=active]:bg-white rounded-none px-4 py-3 flex items-center gap-1.5"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Shopping</span>
+                  </TabsTrigger>
+                )}
+              </TabsList>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Hair Color</h4>
-                <div className="flex items-center space-x-2">
-                  <div
-                    className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                    style={{ backgroundColor: `rgb(${features.hairColorRGB.join(",")})` }}
-                  />
-                  <span className="text-sm capitalize">{features.hairColor}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Eye Color</h4>
-                <div className="flex items-center space-x-2">
-                  <div
-                    className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                    style={{ backgroundColor: `rgb(${features.eyeColorRGB.join(",")})` }}
-                  />
-                  <span className="text-sm capitalize">{features.eyeColor}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium text-sm mb-1">Face Shape</h4>
-                <Badge variant="outline">{features.faceShape}</Badge>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm mb-1">Color Season</h4>
-                <Badge variant="secondary" className="bg-green-50 text-green-700">
-                  {features.colorSeason}
+            {/* Image Analysis Tab */}
+            <TabsContent value="image-analysis" className="p-6 m-0">
+              <div className="flex items-center gap-2 mb-6">
+                <Eye className="h-5 w-5 text-purple-600" />
+                <h3 className="text-lg font-semibold text-slate-900">Computer Vision Analysis</h3>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                  AI Extracted Features
                 </Badge>
               </div>
-            </div>
-          </div>
 
-          <div className="space-y-4">
-            <h4 className="font-semibold text-slate-900">Suitable Colors</h4>
-            <div className="flex flex-wrap gap-2">
-              {features.suitableColors.map((color, index) => (
-                <Badge key={index} variant="outline" className="border-green-200 text-green-700">
-                  {color}
-                </Badge>
-              ))}
-            </div>
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Physical Features */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-4">Physical Features</h4>
 
-            <h4 className="font-semibold text-slate-900">Dominant Colors</h4>
-            <div className="space-y-2">
-              {features.dominantColors.slice(0, 5).map((color, index) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <div
-                    className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-sm capitalize">{color.name}</span>
-                      <span className="text-xs text-slate-500">{(color.frequency * 100).toFixed(1)}%</span>
-                    </div>
-                    <Progress value={color.frequency * 100} className="h-1 mt-1" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-
-  const AnalysisResponseCard = ({ response }: { response: APIResponse }) => (
-    <Card className="mt-3 border-green-200 shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-slate-900">AI Style Analysis</h3>
-          <Badge variant="secondary" className="bg-green-50 text-green-700">
-            Powered by Gemini AI
-          </Badge>
-        </div>
-
-        <div className="space-y-6">
-          {/* Skin Analysis Results */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Skin Tone Analysis</h4>
-            <div className="grid gap-3">
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <h5 className="font-medium text-sm mb-1">Skin Tone Category</h5>
-                <p className="text-sm text-slate-700">{response.analysis.skinAnalysisResults.skinToneCategory}</p>
-              </div>
-              <div className="p-3 bg-orange-50 rounded-lg">
-                <h5 className="font-medium text-sm mb-1">Undertone Analysis</h5>
-                <p className="text-sm text-slate-700">{response.analysis.skinAnalysisResults.undertoneAnalysis}</p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <h5 className="font-medium text-sm mb-1">Color Season</h5>
-                <p className="text-sm text-slate-700">{response.analysis.skinAnalysisResults.colorSeason}</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Best and Avoid Colors */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-3">Best Colors</h4>
-              <div className="flex flex-wrap gap-2">
-                {response.analysis.skinAnalysisResults.bestColors.map((color, index) => (
-                  <Badge key={index} variant="secondary" className="bg-green-50 text-green-700">
-                    {color}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-3">Colors to Avoid</h4>
-              <div className="flex flex-wrap gap-2">
-                {response.analysis.skinAnalysisResults.avoidColors.map((color, index) => (
-                  <Badge key={index} variant="secondary" className="bg-red-50 text-red-700">
-                    {color}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Style Recommendations */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4">Style Recommendations</h4>
-            <div className="space-y-4">
-              {Object.entries(response.analysis.styleRecommendations).map(([occasion, details]) => (
-                <Card key={occasion} className="border-slate-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="outline" className="border-green-200 text-green-700 capitalize">
-                        {occasion}
-                      </Badge>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div>
-                        <h5 className="font-medium text-sm mb-2">Clothing</h5>
-                        <ul className="space-y-1">
-                          {details.clothing.slice(0, 3).map((item, index) => (
-                            <li key={index} className="flex items-start space-x-2 text-sm">
-                              <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h5 className="font-medium text-sm mb-2">Colors</h5>
-                        <div className="flex flex-wrap gap-1">
-                          {details.colors.map((color, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {color}
+                    {/* Skin Tone */}
+                    {extractedFeatures.skinToneRGB && (
+                      <div className="flex items-center space-x-4 mb-4 p-4 bg-slate-50 rounded-lg">
+                        <div
+                          className="w-16 h-16 rounded-full border-4 border-white shadow-lg flex-shrink-0"
+                          style={{ backgroundColor: `rgb(${extractedFeatures.skinToneRGB.join(",")})` }}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                              {extractedFeatures.skinTone || "Unknown"} skin
                             </Badge>
-                          ))}
+                            <Badge variant="outline" className="border-purple-200">
+                              {extractedFeatures.skinUndertone || "Unknown"} undertone
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-slate-600 font-mono">
+                            RGB({extractedFeatures.skinToneRGB.join(",")})
+                          </p>
+                          <Badge variant="secondary" className="bg-green-50 text-green-700 mt-2">
+                            {extractedFeatures.colorSeason || "Unknown"} Season
+                          </Badge>
                         </div>
                       </div>
-                      <div>
-                        <h5 className="font-medium text-sm mb-2">Accessories</h5>
-                        <ul className="space-y-1">
-                          {details.accessories.slice(0, 2).map((item, index) => (
+                    )}
+
+                    {/* Hair and Eyes */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      {extractedFeatures.hairColorRGB && (
+                        <div className="p-3 bg-slate-50 rounded-lg">
+                          <h5 className="font-medium text-sm mb-2">Hair Color</h5>
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                              style={{ backgroundColor: `rgb(${extractedFeatures.hairColorRGB.join(",")})` }}
+                            />
+                            <div>
+                              <span className="text-sm capitalize font-medium">
+                                {extractedFeatures.hairColor || "Unknown"}
+                              </span>
+                              <p className="text-xs text-slate-500 font-mono">
+                                RGB({extractedFeatures.hairColorRGB.join(",")})
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {extractedFeatures.eyeColorRGB && (
+                        <div className="p-3 bg-slate-50 rounded-lg">
+                          <h5 className="font-medium text-sm mb-2">Eye Color</h5>
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                              style={{ backgroundColor: `rgb(${extractedFeatures.eyeColorRGB.join(",")})` }}
+                            />
+                            <div>
+                              <span className="text-sm capitalize font-medium">
+                                {extractedFeatures.eyeColor || "Unknown"}
+                              </span>
+                              <p className="text-xs text-slate-500 font-mono">
+                                RGB({extractedFeatures.eyeColorRGB.join(",")})
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Face Shape and Demographics */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-slate-50 rounded-lg">
+                        <h5 className="font-medium text-sm mb-1">Face Shape</h5>
+                        <Badge variant="outline">{extractedFeatures.faceShape || "Unknown"}</Badge>
+                      </div>
+                      <div className="p-3 bg-slate-50 rounded-lg">
+                        <h5 className="font-medium text-sm mb-1">Age Group</h5>
+                        <Badge variant="outline" className="capitalize">
+                          {extractedFeatures.ageGroup || "Unknown"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Facial Measurements */}
+                    {extractedFeatures.facialFeatures && (
+                      <div className="p-3 bg-slate-50 rounded-lg">
+                        <h5 className="font-medium text-sm mb-2">Facial Measurements</h5>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Width:</span>
+                            <span>{extractedFeatures.facialFeatures.faceWidth || 0}px</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Height:</span>
+                            <span>{extractedFeatures.facialFeatures.faceHeight || 0}px</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Area:</span>
+                            <span>{extractedFeatures.facialFeatures.faceArea?.toLocaleString() || 0}px²</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Ratio:</span>
+                            <span>{extractedFeatures.facialFeatures.aspectRatio || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Color Palette */}
+                <div className="space-y-6">
+                  {/* Suitable Colors */}
+                  {extractedFeatures.suitableColors && extractedFeatures.suitableColors.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-3">Recommended Color Palette</h4>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {extractedFeatures.suitableColors.map((color, index) => (
+                          <Badge key={index} variant="outline" className="border-green-200 text-green-700">
+                            {color}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dominant Colors from Image */}
+                  {extractedFeatures.dominantColors && extractedFeatures.dominantColors.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-3">Dominant Colors in Image</h4>
+                      <div className="space-y-3">
+                        {extractedFeatures.dominantColors.slice(0, 5).map((color, index) => (
+                          <div key={index} className="flex items-center space-x-3 p-2 bg-slate-50 rounded-lg">
+                            <div
+                              className="w-8 h-8 rounded-full border-2 border-white shadow-sm flex-shrink-0"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-medium text-sm capitalize">{color.name}</span>
+                                <span className="text-xs text-slate-500">{(color.frequency * 100).toFixed(1)}%</span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs text-slate-500">
+                                <span className="font-mono">{color.hex}</span>
+                                <span className="font-mono">RGB({color.rgb.join(",")})</span>
+                              </div>
+                              <Progress value={color.frequency * 100} className="h-1.5 mt-1" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Skin Analysis Summary */}
+                  {analysis?.skinAnalysisResults && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-medium text-sm mb-2 text-blue-900">AI Skin Analysis Summary</h4>
+                      {analysis.skinAnalysisResults.skinToneCategory && (
+                        <p className="text-sm text-blue-800 mb-2">{analysis.skinAnalysisResults.skinToneCategory}</p>
+                      )}
+                      {analysis.skinAnalysisResults.undertoneAnalysis && (
+                        <p className="text-sm text-blue-800">{analysis.skinAnalysisResults.undertoneAnalysis}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Color Analysis Tab */}
+            {analysis?.skinAnalysisResults && (
+              <TabsContent value="color-analysis" className="p-6 m-0">
+                <div className="flex items-center gap-2 mb-6">
+                  <Swatch className="h-5 w-5 text-orange-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Color Theory & Analysis</h3>
+                  <Badge variant="secondary" className="bg-orange-50 text-orange-700">
+                    Personalized Palette
+                  </Badge>
+                </div>
+
+                <div className="space-y-8">
+                  {/* Color Season Analysis */}
+                  {analysis.skinAnalysisResults.colorSeason && (
+                    <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-slate-900 mb-2">Your Color Season</h4>
+                      <p className="text-sm text-slate-700">{analysis.skinAnalysisResults.colorSeason}</p>
+                    </div>
+                  )}
+
+                  {/* Best and Avoid Colors */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {analysis.skinAnalysisResults.bestColors && (
+                      <Card className="border-green-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base text-green-800">✓ Best Colors for You</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {analysis.skinAnalysisResults.bestColors.map((color, index) => (
+                              <Badge key={index} variant="secondary" className="bg-green-50 text-green-700">
+                                {color}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {analysis.skinAnalysisResults.avoidColors && (
+                      <Card className="border-red-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base text-red-800">✗ Colors to Avoid</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {analysis.skinAnalysisResults.avoidColors.map((color, index) => (
+                              <Badge key={index} variant="secondary" className="bg-red-50 text-red-700">
+                                {color}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  {/* Color Combinations */}
+                  {analysis.colorCombinations && (
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-4">Color Combination Ideas</h4>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {analysis.colorCombinations.harmonious && (
+                          <Card className="border-blue-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-blue-800">Harmonious Combinations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-2">
+                                {analysis.colorCombinations.harmonious.map((combo, index) => (
+                                  <li key={index} className="flex items-start space-x-2 text-sm">
+                                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
+                                    <span>{combo}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {analysis.colorCombinations.complementary && (
+                          <Card className="border-orange-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-orange-800">Complementary Combinations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-2">
+                                {analysis.colorCombinations.complementary.map((combo, index) => (
+                                  <li key={index} className="flex items-start space-x-2 text-sm">
+                                    <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2 flex-shrink-0" />
+                                    <span>{combo}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {analysis.colorCombinations.monochromatic && (
+                          <Card className="border-purple-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-purple-800">Monochromatic Combinations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-2">
+                                {analysis.colorCombinations.monochromatic.map((combo, index) => (
+                                  <li key={index} className="flex items-start space-x-2 text-sm">
+                                    <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2 flex-shrink-0" />
+                                    <span>{combo}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {analysis.colorCombinations.triadic && (
+                          <Card className="border-green-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-green-800">Triadic Combinations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-2">
+                                {analysis.colorCombinations.triadic.map((combo, index) => (
+                                  <li key={index} className="flex items-start space-x-2 text-sm">
+                                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                                    <span>{combo}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            )}
+
+            {/* Style Guide Tab */}
+            {analysis?.styleRecommendations && (
+              <TabsContent value="style-guide" className="p-6 m-0">
+                <div className="flex items-center gap-2 mb-6">
+                  <Shirt className="h-5 w-5 text-green-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Style Recommendations</h3>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    Occasion-Based Styling
+                  </Badge>
+                </div>
+
+                <div className="space-y-6">
+                  {Object.entries(analysis.styleRecommendations).map(([occasion, details]) => (
+                    <Card key={occasion} className="border-slate-200">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Badge variant="outline" className="border-green-200 text-green-700 capitalize">
+                            {occasion}
+                          </Badge>
+                          <span className="text-base capitalize">{occasion} Style Guide</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid md:grid-cols-3 gap-6">
+                          <div>
+                            <h5 className="font-medium text-sm mb-3 text-slate-900">Clothing Pieces</h5>
+                            <ul className="space-y-2">
+                              {(details.clothing || []).map((item, index) => (
+                                <li key={index} className="flex items-start space-x-2 text-sm">
+                                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-medium text-sm mb-3 text-slate-900">Color Palette</h5>
+                            <div className="flex flex-wrap gap-1">
+                              {(details.colors || []).map((color, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {color}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h5 className="font-medium text-sm mb-3 text-slate-900">Accessories</h5>
+                            <ul className="space-y-2">
+                              {(details.accessories || []).map((item, index) => (
+                                <li key={index} className="flex items-start space-x-2 text-sm">
+                                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Specific Recommendations */}
+                  {analysis.specificRecommendations && (
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-4">Personalized Recommendations</h4>
+                      <div className="grid gap-4">
+                        {analysis.specificRecommendations.faceShape && (
+                          <Card className="border-blue-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-blue-800">Face Shape Styling</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-slate-700">{analysis.specificRecommendations.faceShape}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {analysis.specificRecommendations.bodyType && (
+                          <Card className="border-purple-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-purple-800">Body Type Recommendations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-slate-700">{analysis.specificRecommendations.bodyType}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {analysis.specificRecommendations.lifestyle && (
+                          <Card className="border-green-200">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm text-green-800">Lifestyle Considerations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-slate-700">{analysis.specificRecommendations.lifestyle}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            )}
+
+            {/* Beauty Tips Tab */}
+            {analysis?.personalizedTips && (
+              <TabsContent value="beauty-tips" className="p-6 m-0">
+                <div className="flex items-center gap-2 mb-6">
+                  <Brush className="h-5 w-5 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Beauty & Styling Tips</h3>
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                    Expert Advice
+                  </Badge>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {analysis.personalizedTips.makeup && (
+                    <Card className="border-purple-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-purple-800 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                          Makeup
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.personalizedTips.makeup.map((tip, index) => (
                             <li key={index} className="flex items-start space-x-2 text-sm">
-                              <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
-                              <span>{item}</span>
+                              <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-slate-700">{tip}</span>
                             </li>
                           ))}
                         </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-          <Separator />
+                  {analysis.personalizedTips.hairStyling && (
+                    <Card className="border-blue-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-blue-800 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                          Hair Styling
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.personalizedTips.hairStyling.map((tip, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-slate-700">{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
 
-          {/* Personalized Tips */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Personalized Tips</h4>
-            <div className="grid gap-4">
-              {Object.entries(response.analysis.personalizedTips).map(([category, tips]) => (
-                <div key={category} className="p-3 bg-slate-50 rounded-lg">
-                  <h5 className="font-medium text-sm mb-2 capitalize">{category}</h5>
-                  <ul className="space-y-1">
-                    {tips.slice(0, 3).map((tip, index) => (
-                      <li key={index} className="flex items-start space-x-2 text-sm">
-                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2 flex-shrink-0" />
-                        <span className="text-slate-700">{tip}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {analysis.personalizedTips.eyewear && (
+                    <Card className="border-green-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-green-800 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                          Eyewear
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.personalizedTips.eyewear.map((tip, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-slate-700">{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {analysis.personalizedTips.jewelry && (
+                    <Card className="border-yellow-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-yellow-800 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
+                          Jewelry
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.personalizedTips.jewelry.map((tip, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-slate-700">{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {analysis.personalizedTips.patterns && (
+                    <Card className="border-orange-200 md:col-span-2">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-orange-800 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-orange-600 rounded-full"></span>
+                          Patterns & Prints
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.personalizedTips.patterns.map((tip, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-slate-700">{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
+              </TabsContent>
+            )}
 
-          {/* User Request Response */}
-          {response.analysis.userRequestResponse && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="font-semibold text-slate-900 mb-2">Specific Response</h4>
-                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                    {response.analysis.userRequestResponse}
-                  </p>
+            {/* Seasonal Tab */}
+            {analysis?.seasonalAdvice && (
+              <TabsContent value="seasonal" className="p-6 m-0">
+                <div className="flex items-center gap-2 mb-6">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Seasonal Style Guide</h3>
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    Year-Round Styling
+                  </Badge>
                 </div>
-              </div>
-            </>
-          )}
 
-          <Separator />
+                <div className="grid md:grid-cols-2 gap-6">
+                  {analysis.seasonalAdvice.spring && (
+                    <Card className="border-green-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-green-800">🌸 Spring</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.seasonalAdvice.spring.map((advice, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                              <span>{advice}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {analysis.seasonalAdvice.summer && (
+                    <Card className="border-yellow-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-yellow-800">☀️ Summer</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.seasonalAdvice.summer.map((advice, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
+                              <span>{advice}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {analysis.seasonalAdvice.autumn && (
+                    <Card className="border-orange-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-orange-800">🍂 Autumn</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.seasonalAdvice.autumn.map((advice, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2 flex-shrink-0" />
+                              <span>{advice}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {analysis.seasonalAdvice.winter && (
+                    <Card className="border-blue-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-blue-800">❄️ Winter</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.seasonalAdvice.winter.map((advice, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
+                              <span>{advice}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+            )}
 
-          {/* Shopping Guide */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Shopping Guide</h4>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h5 className="font-medium text-sm mb-2">Priority Items</h5>
-                <ul className="space-y-1">
-                  {response.analysis.shoppingGuide.priorityItems.map((item, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-sm">
-                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h5 className="font-medium text-sm mb-2">Budget Tips</h5>
-                <ul className="space-y-1">
-                  {response.analysis.shoppingGuide.budgetTips.slice(0, 3).map((tip, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-sm">
-                      <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+            {/* Shopping Tab */}
+            {analysis?.shoppingGuide && (
+              <TabsContent value="shopping" className="p-6 m-0">
+                <div className="flex items-center gap-2 mb-6">
+                  <ShoppingBag className="h-5 w-5 text-green-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Shopping Guide</h3>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    Smart Shopping
+                  </Badge>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {analysis.shoppingGuide.priorityItems && (
+                      <Card className="border-green-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base text-green-800">🎯 Priority Items</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2">
+                            {analysis.shoppingGuide.priorityItems.map((item, index) => (
+                              <li key={index} className="flex items-start space-x-2 text-sm">
+                                <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {analysis.shoppingGuide.versatilePieces && (
+                      <Card className="border-blue-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base text-blue-800">🔄 Versatile Pieces</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2">
+                            {analysis.shoppingGuide.versatilePieces.map((item, index) => (
+                              <li key={index} className="flex items-start space-x-2 text-sm">
+                                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  {analysis.shoppingGuide.budgetTips && (
+                    <Card className="border-purple-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-purple-800">💰 Budget Tips</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.shoppingGuide.budgetTips.map((tip, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2 flex-shrink-0" />
+                              <span>{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {analysis.shoppingGuide.brands && (
+                    <Card className="border-orange-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base text-orange-800">🏪 Recommended Brands</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {analysis.shoppingGuide.brands.map((brand, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-sm">
+                              <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2 flex-shrink-0" />
+                              <span>{brand}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
+        </Card>
+
+        {/* User Input & AI Response Section */}
+        {(response.userText || analysis?.userRequestResponse) && (
+          <Card className="border-indigo-200 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-indigo-800">
+                <MessageSquare className="h-5 w-5" />
+                Your Question & AI Response
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {response.userText && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2 text-slate-900">Your Question:</h4>
+                  <div className="p-3 bg-slate-50 rounded-lg border-l-4 border-indigo-400">
+                    <p className="text-sm text-slate-700 italic">"{response.userText}"</p>
+                  </div>
+                </div>
+              )}
+
+              {analysis?.userRequestResponse && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2 text-slate-900 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-indigo-600" />
+                    AI Personalized Response:
+                  </h4>
+                  <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                      {analysis.userRequestResponse}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
@@ -618,7 +1187,7 @@ export default function StyleScriptChat() {
 
       {/* Messages */}
       <ScrollArea className="flex-1 px-6 py-4">
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -651,17 +1220,17 @@ export default function StyleScriptChat() {
               </Avatar>
 
               <div
-                className={`flex flex-col space-y-2 max-w-[85%] ${message.role === "user" ? "items-end" : "items-start"
+                className={`flex flex-col space-y-2 max-w-[90%] ${message.role === "user" ? "items-end" : "items-start"
                   }`}
               >
                 <div
                   className={`rounded-2xl px-4 py-3 ${message.role === "user"
-                    ? "bg-slate-900 text-white"
-                    : message.role === "system"
-                      ? "bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 text-blue-900"
-                      : message.type === "error"
-                        ? "bg-red-50 border border-red-200 text-red-900"
-                        : "bg-white border border-slate-200 shadow-sm"
+                      ? "bg-slate-900 text-white"
+                      : message.role === "system"
+                        ? "bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 text-blue-900"
+                        : message.type === "error"
+                          ? "bg-red-50 border border-red-200 text-red-900"
+                          : "bg-white border border-slate-200 shadow-sm"
                     }`}
                 >
                   {message.image && (
@@ -676,13 +1245,8 @@ export default function StyleScriptChat() {
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </div>
 
-                {/* API Response */}
-                {message.apiResponse && (
-                  <>
-                    <ExtractedFeaturesCard features={message.apiResponse.extractedFeatures} />
-                    <AnalysisResponseCard response={message.apiResponse} />
-                  </>
-                )}
+                {/* API Response with Restructured Tabs */}
+                {message.apiResponse && <TabbedAnalysisCard response={message.apiResponse} />}
 
                 <div className="flex items-center space-x-2">
                   <span className="text-xs text-slate-500">
@@ -715,7 +1279,7 @@ export default function StyleScriptChat() {
 
       {/* Input Area */}
       <div className="border-t border-slate-200 bg-white/80 backdrop-blur-sm px-6 py-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
           <input
             type="file"
