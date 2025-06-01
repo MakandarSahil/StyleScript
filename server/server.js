@@ -3,8 +3,8 @@ const multer = require("multer");
 const { spawn } = require("child_process");
 const axios = require("axios");
 const cors = require("cors");
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const PORT = 5000;
@@ -12,32 +12,129 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Create uploads directory if it doesn't exist
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
+// Configure multer for file uploads
 const upload = multer({
-  dest: uploadDir,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  dest: "uploads/",
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!"), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
+// Helper function to clean Gemini API response text
 function cleanGeminiResponse(text) {
   return text
     .replace(/```json/g, "")
     .replace(/```/g, "")
+    .replace(/^\s*[\r\n]/gm, "")
     .trim();
+}
+
+// Enhanced prompt for comprehensive analysis
+function createEnhancedPrompt(extractedFeatures) {
+  return `
+You are a professional style consultant and color analyst. Based on the following detailed analysis of a person's features, provide comprehensive styling advice.
+
+EXTRACTED FEATURES:
+- Skin Tone: ${extractedFeatures.skinTone} (RGB: ${
+    extractedFeatures.skinToneRGB
+  })
+- Skin Undertone: ${extractedFeatures.skinUndertone}
+- Hair Color: ${extractedFeatures.hairColor} (RGB: ${
+    extractedFeatures.hairColorRGB
+  })
+- Eye Color: ${extractedFeatures.eyeColor} (RGB: ${
+    extractedFeatures.eyeColorRGB
+  })
+- Face Shape: ${extractedFeatures.faceShape}
+- Gender: ${extractedFeatures.gender}
+- Age Group: ${extractedFeatures.ageGroup}
+- Facial Features: ${JSON.stringify(extractedFeatures.facialFeatures)}
+- Color Season: ${extractedFeatures.colorSeason}
+- Dominant Colors: ${JSON.stringify(extractedFeatures.dominantColors)}
+
+Please provide a comprehensive analysis in the following JSON format:
+
+{
+  "skinAnalysisResults": {
+    "skinToneCategory": "detailed skin tone classification",
+    "undertoneAnalysis": "detailed undertone explanation",
+    "colorSeason": "Spring/Summer/Autumn/Winter classification",
+    "bestColors": ["array of best colors for this skin tone"],
+    "avoidColors": ["array of colors to avoid"]
+  },
+  "styleRecommendations": {
+    "professional": {
+      "clothing": ["specific professional outfit suggestions"],
+      "colors": ["professional color palette"],
+      "accessories": ["appropriate accessories"]
+    },
+    "casual": {
+      "clothing": ["casual outfit suggestions"],
+      "colors": ["casual color palette"],
+      "accessories": ["casual accessories"]
+    },
+    "evening": {
+      "clothing": ["evening wear suggestions"],
+      "colors": ["evening color palette"],
+      "accessories": ["evening accessories"]
+    },
+    "formal": {
+      "clothing": ["formal wear suggestions"],
+      "colors": ["formal color palette"],
+      "accessories": ["formal accessories"]
+    }
+  },
+  "colorCombinations": {
+    "harmonious": ["color combinations that work well together"],
+    "monochromatic": ["single color variations"],
+    "complementary": ["complementary color pairs"],
+    "triadic": ["three-color combinations"]
+  },
+  "personalizedTips": {
+    "makeup": ["makeup recommendations based on features"],
+    "hairStyling": ["hair styling suggestions"],
+    "eyewear": ["eyewear recommendations for face shape"],
+    "jewelry": ["jewelry recommendations"],
+    "patterns": ["suitable patterns and prints"]
+  },
+  "seasonalAdvice": {
+    "spring": ["spring wardrobe suggestions"],
+    "summer": ["summer wardrobe suggestions"],
+    "autumn": ["autumn wardrobe suggestions"],
+    "winter": ["winter wardrobe suggestions"]
+  },
+  "shoppingGuide": {
+    "priorityItems": ["must-have wardrobe items"],
+    "budgetTips": ["budget-friendly shopping advice"],
+    "brands": ["recommended brands or styles"],
+    "versatilePieces": ["versatile clothing items"]
+  },
+  "specificRecommendations": {
+    "faceShape": "recommendations based on face shape",
+    "bodyType": "general body type recommendations",
+    "lifestyle": "recommendations based on inferred lifestyle"
+  }
+}
+
+Provide detailed, actionable advice that considers all the extracted features holistically.`;
 }
 
 app.post("/analyze", upload.single("image"), async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: "No image uploaded" });
+    return res.status(400).json({ error: "No image file uploaded." });
   }
 
   const imagePath = req.file.path;
 
   try {
+    // Spawn Python process for feature extraction
     const python = spawn("python", ["extract_features.py", imagePath]);
 
     let result = "";
@@ -49,95 +146,150 @@ app.post("/analyze", upload.single("image"), async (req, res) => {
 
     python.stderr.on("data", (data) => {
       errorOutput += data.toString();
+      console.error("Python stderr:", data.toString());
     });
 
     python.on("close", async (code) => {
-      if (code !== 0) {
-        console.error("Python script failed:", errorOutput);
-        return res.status(500).json({
-          error: "Feature extraction failed",
-          details: errorOutput,
-        });
-      }
-
       try {
+        // Clean up uploaded file
+        fs.unlinkSync(imagePath);
+
+        if (code !== 0) {
+          console.error("Python process exited with code:", code);
+          console.error("Error output:", errorOutput);
+          return res.status(500).json({ error: "Image analysis failed." });
+        }
+
+        if (!result.trim()) {
+          return res
+            .status(500)
+            .json({ error: "No output from image analysis." });
+        }
+
+        // Parse extracted features
         const extracted = JSON.parse(result);
+        console.log("Extracted features:", extracted);
 
-        const prompt = `
-Comprehensive Style Analysis Request:
+        // Create enhanced prompt
+        const prompt = createEnhancedPrompt(extracted);
 
-User Image Analysis:
-${JSON.stringify(extracted, null, 2)}
-
-Please provide a detailed style analysis including:
-
-1. Skin Tone Analysis:
-   - Undertone assessment
-   - Best color matches
-   - Colors to avoid
-
-2. Color Palette Recommendations:
-   - Professional colors
-   - Casual colors
-   - Evening/Formal colors
-   - Seasonal palettes
-
-3. Outfit Recommendations:
-   - Professional/Work attire
-   - Casual/Everyday outfits
-   - Evening/Special occasion
-   - Seasonal outfits
-
-4. Style Tips:
-   - Best necklines for face shape
-   - Best patterns for body type
-   - Accessory recommendations
-   - Hair style suggestions
-
-5. Shopping Guide:
-   - Recommended clothing items
-   - Stores/brands that would suit
-   - Budget-friendly options
-
-Respond in JSON format with proper structure.
-        `;
-
+        // Call Gemini API
         const geminiResponse = await axios.post(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBv_-6HxbmCygVXNAsBJ-q5o6c6G6xNMd0",
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
+            process.env.GEMINI_API_KEY ||
+            "AIzaSyBv_-6HxbmCygVXNAsBJ-q5o6c6G6xNMd0"
+          }`,
           {
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [
+              {
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 4000,
+            },
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            timeout: 30000,
           }
         );
 
         const geminiText =
           geminiResponse.data.candidates[0].content.parts[0].text;
+        console.log(
+          "Gemini raw response:",
+          geminiText.substring(0, 200) + "..."
+        );
+
         const cleanedText = cleanGeminiResponse(geminiText);
 
-        const geminiJson = JSON.parse(cleanedText);
+        let geminiJson;
+        try {
+          geminiJson = JSON.parse(cleanedText);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          console.error("Cleaned text:", cleanedText);
 
-        // Clean up the uploaded file
-        fs.unlink(imagePath, (err) => {
-          if (err) console.error("Error deleting file:", err);
-        });
+          // Fallback response structure
+          geminiJson = {
+            error: "Failed to parse AI response",
+            rawResponse: cleanedText.substring(0, 500),
+          };
+        }
 
+        // Send successful response
         res.json({
-          imageAnalysis: extracted,
-          styleRecommendations: geminiJson,
+          success: true,
+          extractedFeatures: extracted,
+          analysis: geminiJson,
+          timestamp: new Date().toISOString(),
         });
       } catch (error) {
         console.error("Processing error:", error);
-        res.status(500).json({
-          error: "Processing failed",
-          details: error.message,
-        });
+
+        if (error.response) {
+          console.error("Gemini API error:", error.response.data);
+          res.status(500).json({
+            error: "AI analysis failed",
+            details: error.response.data?.error?.message || "Unknown API error",
+          });
+        } else if (error.code === "ECONNABORTED") {
+          res
+            .status(500)
+            .json({ error: "Analysis timeout. Please try again." });
+        } else {
+          res.status(500).json({
+            error: "Analysis failed",
+            details: error.message,
+          });
+        }
       }
+    });
+
+    python.on("error", (error) => {
+      console.error("Python process error:", error);
+      try {
+        fs.unlinkSync(imagePath);
+      } catch (cleanupError) {
+        console.error("Cleanup error:", cleanupError);
+      }
+      res.status(500).json({ error: "Image processing failed." });
     });
   } catch (error) {
     console.error("Server error:", error);
-    res.status(500).json({ error: "Server error" });
+    try {
+      fs.unlinkSync(imagePath);
+    } catch (cleanupError) {
+      console.error("Cleanup error:", cleanupError);
+    }
+    res.status(500).json({ error: "Server error occurred." });
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`✅ Server running on http://localhost:${PORT}`)
-);
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return res
+        .status(400)
+        .json({ error: "File too large. Maximum size is 5MB." });
+    }
+  }
+  res.status(500).json({ error: "Something went wrong!" });
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`🔍 Health check: http://localhost:${PORT}/health`);
+});

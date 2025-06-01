@@ -1,19 +1,3 @@
-// import React from 'react'
-// import AppRoutes from './routes/AppRoutes'
-// import { ModelPathProvider } from './context/ModelPathContext'
-
-
-// export default function App() {
-//   return (
-//     <React.Fragment>
-//       <ModelPathProvider>
-//         <AppRoutes />
-//       </ModelPathProvider>
-//     </React.Fragment>
-//   )
-// }
-
-
 import React, { useState } from "react";
 import { Upload, Image, Palette, Sparkles, FileImage, Loader2, Check, AlertCircle } from "lucide-react";
 
@@ -35,8 +19,6 @@ function App() {
         method: "POST",
         body: formData,
       });
-
-      console.log(response)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -78,6 +60,14 @@ function App() {
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
+  };
+
+  // Helper function to format feature names
+  const formatFeatureName = (name: string) => {
+    return name
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .replace('RGB', ' (RGB)');
   };
 
   return (
@@ -186,18 +176,44 @@ function App() {
                 <h3 className="text-xl font-semibold text-gray-800">Extracted Features</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {Object.entries(result.features).map(([key, value]) =>
-                  key === "suitableColors" ? null : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(result.extractedFeatures).map(([key, value]) => {
+                  // Skip these complex objects as they have their own sections
+                  if (key === "suitableColors" || key === "dominantColors" || key === "facialFeatures") {
+                    return null;
+                  }
+
+                  return (
                     <div key={key} className="bg-gradient-to-br from-white to-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
                       <div className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                        {formatFeatureName(key)}
                       </div>
-                      <div className="text-lg font-semibold text-gray-800">{String(value)}</div>
+                      <div className="text-lg font-semibold text-gray-800">
+                        {Array.isArray(value) ? `[${value.join(', ')}]` : String(value)}
+                      </div>
                     </div>
-                  )
-                )}
+                  );
+                })}
               </div>
+
+              {/* Facial Features */}
+              {result.extractedFeatures.facialFeatures && (
+                <div className="mt-6">
+                  <h4 className="text-md font-semibold text-gray-700 mb-3">Facial Features</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {Object.entries(result.extractedFeatures.facialFeatures).map(([key, value]) => (
+                      <div key={key} className="bg-gradient-to-br from-white to-gray-50 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300">
+                        <div className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">
+                          {formatFeatureName(key)}
+                        </div>
+                        <div className="text-lg font-semibold text-gray-800">
+                          {String(value)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Color Palette */}
@@ -209,21 +225,49 @@ function App() {
                 <h3 className="text-xl font-semibold text-gray-800">Color Palette</h3>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                {result.features.suitableColors.map((color: string, i: number) => (
-                  <div
-                    key={i}
-                    className="group cursor-pointer hover:scale-110 transition-all duration-300"
-                  >
+              <div className="mb-8">
+                <h4 className="text-md font-semibold text-gray-700 mb-3">Suitable Colors</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                  {result.extractedFeatures.suitableColors.map((color: string, i: number) => (
                     <div
-                      className="aspect-square rounded-2xl shadow-lg border-4 border-white group-hover:shadow-xl transition-shadow duration-300"
-                      style={{ backgroundColor: color }}
-                    />
-                    <div className="text-center mt-2 text-sm font-mono text-gray-600 group-hover:text-gray-800 transition-colors">
-                      {color}
+                      key={`suitable-${i}`}
+                      className="group cursor-pointer hover:scale-110 transition-all duration-300"
+                    >
+                      <div
+                        className="aspect-square rounded-2xl shadow-lg border-4 border-white group-hover:shadow-xl transition-shadow duration-300"
+                        style={{ backgroundColor: color }}
+                      />
+                      <div className="text-center mt-2 text-sm font-mono text-gray-600 group-hover:text-gray-800 transition-colors">
+                        {color}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3">Dominant Colors in Image</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  {result.extractedFeatures.dominantColors.map((color: any, i: number) => (
+                    <div
+                      key={`dominant-${i}`}
+                      className="group cursor-pointer hover:scale-110 transition-all duration-300"
+                    >
+                      <div
+                        className="aspect-square rounded-2xl shadow-lg border-4 border-white group-hover:shadow-xl transition-shadow duration-300"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <div className="text-center mt-2 space-y-1">
+                        <div className="text-sm font-mono text-gray-600 group-hover:text-gray-800 transition-colors">
+                          {color.hex}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {color.name} ({(color.frequency * 100).toFixed(1)}%)
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -236,43 +280,203 @@ function App() {
                 <h3 className="text-xl font-semibold text-gray-800">AI Recommendations</h3>
               </div>
 
-              <div className="space-y-6">
-                {Object.entries(result.geminiResponse).map(([section, content]: [string, any]) => (
-                  <div key={section} className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      {section.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    </h4>
+              <div className="space-y-8">
+                {/* Skin Analysis */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Skin Analysis
+                  </h4>
+                  <div className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      {result.analysis.skinAnalysisResults.skinToneCategory}
+                    </p>
+                    <p className="text-gray-700 leading-relaxed">
+                      {result.analysis.skinAnalysisResults.undertoneAnalysis}
+                    </p>
+                    <p className="text-gray-700 leading-relaxed">
+                      {result.analysis.skinAnalysisResults.colorSeason}
+                    </p>
 
-                    {typeof content === "string" || typeof content === "number" ? (
-                      <p className="text-gray-700 leading-relaxed">{content}</p>
-                    ) : Array.isArray(content) ? (
-                      <div className="space-y-2">
-                        {content.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-100">
-                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-gray-700">{typeof item === "object" ? JSON.stringify(item) : item}</span>
-                          </div>
-                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                      <div>
+                        <h5 className="font-medium text-gray-700 mb-2">Best Colors</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {result.analysis.skinAnalysisResults.bestColors.map((color: string, i: number) => (
+                            <span key={`best-${i}`} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                              {color}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    ) : typeof content === "object" ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(content).map(([key, value], idx) => (
-                          <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100">
-                            <div className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">
-                              {key}
-                            </div>
-                            <div className="text-gray-800 font-medium">
-                              {typeof value === "object" ? JSON.stringify(value) : String(value)}
-                            </div>
-                          </div>
-                        ))}
+                      <div>
+                        <h5 className="font-medium text-gray-700 mb-2">Colors to Avoid</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {result.analysis.skinAnalysisResults.avoidColors.map((color: string, i: number) => (
+                            <span key={`avoid-${i}`} className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                              {color}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-gray-700">{String(content)}</p>
-                    )}
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Style Recommendations */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Style Recommendations
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.entries(result.analysis.styleRecommendations).map(([occasion, details]: [string, any]) => (
+                      <div key={occasion} className="space-y-3">
+                        <h5 className="font-medium text-gray-700 capitalize">{occasion}</h5>
+                        <div className="space-y-2">
+                          <h6 className="text-sm font-medium text-gray-600">Clothing:</h6>
+                          <ul className="space-y-1 pl-5 list-disc text-gray-700">
+                            {details.clothing.map((item: string, i: number) => (
+                              <li key={`${occasion}-clothing-${i}`}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <h6 className="text-sm font-medium text-gray-600">Colors:</h6>
+                          <div className="flex flex-wrap gap-2">
+                            {details.colors.map((color: string, i: number) => (
+                              <span key={`${occasion}-color-${i}`} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                {color}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <h6 className="text-sm font-medium text-gray-600">Accessories:</h6>
+                          <ul className="space-y-1 pl-5 list-disc text-gray-700">
+                            {details.accessories.map((item: string, i: number) => (
+                              <li key={`${occasion}-accessory-${i}`}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Combinations */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Color Combinations
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.entries(result.analysis.colorCombinations).map(([type, combinations]: [string, any]) => (
+                      <div key={type} className="space-y-2">
+                        <h5 className="font-medium text-gray-700 capitalize">{type} Combinations</h5>
+                        <ul className="space-y-1 pl-5 list-disc text-gray-700">
+                          {combinations.map((combo: string, i: number) => (
+                            <li key={`${type}-${i}`}>{combo}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Personalized Tips */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Personalized Tips
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.entries(result.analysis.personalizedTips).map(([category, tips]: [string, any]) => (
+                      <div key={category} className="space-y-2">
+                        <h5 className="font-medium text-gray-700 capitalize">{category}</h5>
+                        <ul className="space-y-1 pl-5 list-disc text-gray-700">
+                          {Array.isArray(tips) ? (
+                            tips.map((tip: string, i: number) => (
+                              <li key={`${category}-${i}`}>{tip}</li>
+                            ))
+                          ) : (
+                            <li>{String(tips)}</li>
+                          )}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Seasonal Advice */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Seasonal Advice
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {Object.entries(result.analysis.seasonalAdvice).map(([season, advice]: [string, any]) => (
+                      <div key={season} className="space-y-2">
+                        <h5 className="font-medium text-gray-700 capitalize">{season}</h5>
+                        <ul className="space-y-1 pl-5 list-disc text-gray-700">
+                          {Array.isArray(advice) ? (
+                            advice.map((item: string, i: number) => (
+                              <li key={`${season}-${i}`}>{item}</li>
+                            ))
+                          ) : (
+                            <li>{String(advice)}</li>
+                          )}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Shopping Guide */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Shopping Guide
+                  </h4>
+
+                  <div className="space-y-6">
+                    {Object.entries(result.analysis.shoppingGuide).map(([section, content]: [string, any]) => (
+                      <div key={section} className="space-y-2">
+                        <h5 className="font-medium text-gray-700 capitalize">{section}</h5>
+                        {Array.isArray(content) ? (
+                          <ul className="space-y-1 pl-5 list-disc text-gray-700">
+                            {content.map((item: string, i: number) => (
+                              <li key={`${section}-${i}`}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-gray-700">{String(content)}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Specific Recommendations */}
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Specific Recommendations
+                  </h4>
+
+                  <div className="space-y-4">
+                    {Object.entries(result.analysis.specificRecommendations).map(([category, advice]: [string, any]) => (
+                      <div key={category} className="space-y-2">
+                        <h5 className="font-medium text-gray-700 capitalize">{category}</h5>
+                        <p className="text-gray-700">{String(advice)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
