@@ -9,12 +9,18 @@ const path = require("path");
 const app = express();
 const PORT = 5000;
 
+// Ensure uploads folder exists
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
 app.use(cors());
 app.use(express.json());
 
 // Configure multer for file uploads
 const upload = multer({
-  dest: "uploads/",
+  dest: uploadDir,
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -260,147 +266,96 @@ app.post("/analyze", upload.single("image"), async (req, res) => {
     });
 
     python.on("close", async (code) => {
+      // Clean up uploaded file (async)
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error("Error deleting uploaded file:", err);
+        }
+      });
+
+      if (code !== 0) {
+        console.error("Python process exited with code:", code);
+        console.error("Error output:", errorOutput);
+        return res.status(500).json({ error: "Image analysis failed." });
+      }
+
+      if (!result.trim()) {
+        return res
+          .status(500)
+          .json({ error: "No output from image analysis." });
+      }
+
+      // Parse extracted features
+      let extracted;
       try {
-        // Clean up uploaded file
-        fs.unlinkSync(imagePath);
+        extracted = JSON.parse(result);
+      } catch (err) {
+        console.error("Failed to parse Python output:", err);
+        return res
+          .status(500)
+          .json({ error: "Invalid output from image analysis." });
+      }
 
-        if (code !== 0) {
-          console.error("Python process exited with code:", code);
-          console.error("Error output:", errorOutput);
-          return res.status(500).json({ error: "Image analysis failed." });
-        }
+      console.log("Extracted features:", extracted);
 
-        if (!result.trim()) {
-          return res
-            .status(500)
-            .json({ error: "No output from image analysis." });
-        }
+      // Create enhanced prompt with user text if provided
+      const prompt = createEnhancedPrompt(extracted, userText);
 
-        // Parse extracted features
-        const extracted = JSON.parse(result);
-        console.log("Extracted features:", extracted);
-
-        // Create enhanced prompt with user text if provided
-        const prompt = createEnhancedPrompt(extracted, userText);
-
+      try {
         // Call Gemini API
         const geminiResponse = await axios.post(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${
             process.env.GEMINI_API_KEY ||
-            "AIzaSyBv_-6HxbmCygVXNAsBJ-q5o6c6G6xNMd0"
+            "AIzaSyC-uNAtn01OdKczqPaCUAnNL0tt-yXoOTM"
           }`,
           {
-            contents: [
-              {
-                parts: [{ text: prompt }],
-              },
-            ],
+            contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.7,
               topK: 40,
               topP: 0.95,
-              maxOutputTokens: 4000,
+              maxOutputTokens: 2000,
             },
           },
           {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            timeout: 30000,
+            headers: { "Content-Type": "application/json" },
+            timeout: 60000,
           }
         );
 
         const geminiText =
           geminiResponse.data.candidates[0].content.parts[0].text;
-        console.log(
-          "Gemini raw response:",
-          geminiText.substring(0, 200) + "..."
-        );
-
         const cleanedText = cleanGeminiResponse(geminiText);
 
-        let geminiJson;
+        let parsedResponse;
         try {
-          geminiJson = JSON.parse(cleanedText);
-        } catch (parseError) {
-          console.error("JSON parse error:", parseError);
-          console.error("Cleaned text:", cleanedText);
-
-          // Fallback response structure
-          geminiJson = {
-            error: "Failed to parse AI response",
-            rawResponse: cleanedText.substring(0, 500),
-          };
+          parsedResponse = JSON.parse(cleanedText);
+        } catch (err) {
+          console.warn(
+            "Could not parse Gemini JSON response, sending raw text."
+          );
+          parsedResponse = { rawResponse: cleanedText };
         }
 
-        // Send successful response
-        res.json({
+        return res.json({
           success: true,
           extractedFeatures: extracted,
-          analysis: geminiJson,
-          userText: userText || null,
+          analysis: parsedResponse,
           timestamp: new Date().toISOString(),
         });
       } catch (error) {
-        console.error("Processing error:", error);
-
-        if (error.response) {
-          console.error("Gemini API error:", error.response.data);
-          res.status(500).json({
-            error: "AI analysis failed",
-            details: error.response.data?.error?.message || "Unknown API error",
-          });
-        } else if (error.code === "ECONNABORTED") {
-          res
-            .status(500)
-            .json({ error: "Analysis timeout. Please try again." });
-        } else {
-          res.status(500).json({
-            error: "Analysis failed",
-            details: error.message,
-          });
-        }
+        console.error("Gemini API error:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to get response from Gemini API." });
       }
     });
-
-    python.on("error", (error) => {
-      console.error("Python process error:", error);
-      try {
-        fs.unlinkSync(imagePath);
-      } catch (cleanupError) {
-        console.error("Cleanup error:", cleanupError);
-      }
-      res.status(500).json({ error: "Image processing failed." });
-    });
-  } catch (error) {
-    console.error("Server error:", error);
-    try {
-      fs.unlinkSync(imagePath);
-    } catch (cleanupError) {
-      console.error("Cleanup error:", cleanupError);
-    }
-    res.status(500).json({ error: "Server error occurred." });
+  } catch (err) {
+    console.error("Server error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-});
-
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString() });
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-  if (error instanceof multer.MulterError) {
-    if (error.code === "LIMIT_FILE_SIZE") {
-      return res
-        .status(400)
-        .json({ error: "File too large. Maximum size is 5MB." });
-    }
-  }
-  res.status(500).json({ error: "Something went wrong!" });
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`🔍 Health check: http://localhost:${PORT}/health`);
+  console.log(`Server is running on port ${PORT}`);
 });
